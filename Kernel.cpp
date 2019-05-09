@@ -1,6 +1,6 @@
-#include "Core.h"
+#include "Kernel.h"
 
-void Core::init()
+void Kernel::init()
 {
     SPIFFS.begin();
 
@@ -18,7 +18,7 @@ void Core::init()
         password = config["password"].as<String>();
         sudoPassword = config["sudoPassword"].as<String>();
 
-        WiFi.softAP(machineName.c_str(), "wroomb1an");
+        WiFi.softAP("Wroom", "wroomb1an");
     }
 
     Serial.begin(115200);
@@ -37,9 +37,74 @@ void Core::init()
 
     server.begin(23);
     server.setNoDelay(true);
+
+    commands = new String[commandsCount]{
+        "ram",
+        "rom",
+        "ls",
+        "cd",
+        "cat",
+        "nano",
+        "mkdir",
+        "rmdir",
+        "touch",
+        "rm",
+        "mv",
+        "help",
+        "exit"};
 }
 
-void Core::handleClients()
+void Kernel::execute(Command command)
+{
+    //try to execute command
+    switch (command.commandId)
+    {
+    case 0:
+        RAM();
+        break;
+    case 1:
+        ROM();
+        break;
+    case 2:
+        ls();
+        break;
+    case 3:
+        cd(command.args[0]);
+        break;
+    case 4:
+        cat(command.args[0], command.sudo);
+        break;
+    case 5:
+        nano(command.args[0], command.options, command.sudo);
+        break;
+    case 6:
+        mkdir(command.args[0]);
+        break;
+    case 7:
+        rmdir(command.args[0]);
+        break;
+    case 8:
+        touch(command.args[0]);
+        break;
+    case 9:
+        rm(command.args[0], command.sudo);
+        break;
+    case 10:
+        mv(command.args[0], command.args[1], command.sudo);
+        break;
+    case 11:
+        help();
+        break;
+    case 12:
+        exit();
+        break;
+    default:
+        reply("Unknown command\r\n");
+        break;
+    }
+}
+
+void Kernel::handleClients()
 {
     //check if there are any new client
     if (server.hasClient())
@@ -61,9 +126,9 @@ void Core::handleClients()
 
             //authenticate
             reply("\r\nUsername: ");
-            username = getCommand();
+            username = waitString();
             reply("Password: ");
-            String password = getCommand();
+            String password = waitString();
             if(password != this->password)
             {
                 reply(red("\r\nPassword incorrect! Bye!"));
@@ -80,8 +145,7 @@ void Core::handleClients()
         if (client.available())
         {
             //get command from the client and tyr to execute it
-            String command = getCommand();
-            execute(command);
+            execute(getCommand());
             printPath();
         }
     }
@@ -94,18 +158,18 @@ void Core::handleClients()
     }
 }
 
-void Core::reply(String message)
+void Kernel::reply(String message)
 {
     Serial.print(message);
     client.print(message);
 }
 
-void Core::printPath()
+void Kernel::printPath()
 {
     reply((String) green(username + "@" + machineName) + ":" + blue(currentPath) + "$ ");
 }
 
-void Core::help()
+void Kernel::help()
 {
     reply((String)
             green("Available commands:\r\n") +
@@ -129,21 +193,26 @@ void Core::help()
             red("Be carefull when editing config.json, wrong changes may cause system malfunction!"));
 }
 
-void Core::RAM()
+void Kernel::RAM()
 {
     float percent = ((ESP.getHeapSize() - ESP.getFreeHeap()) / float(ESP.getHeapSize())) * 100.0;
     reply((String) "RAM available: " + ESP.getFreeHeap() + " Bytes (" + percent + "% used)\r\n");
 }
 
-void Core::ROM()
+void Kernel::ROM()
 {
     float percent = SPIFFS.usedBytes() / float(SPIFFS.totalBytes()) * 100.0;
     reply((String) "ROM available: " + (SPIFFS.totalBytes() - SPIFFS.usedBytes()) + " Bytes (" + percent + "% used)\r\n");
 }
 
-void Core::ls()
+void Kernel::ls()
 {
-    File dir = SPIFFS.open(currentPath);
+    File dir;
+    if (currentPath == "/")
+        dir  = SPIFFS.open(currentPath);
+    else
+        dir = SPIFFS.open(currentPath.substring(0, currentPath.length() - 1));
+        
     File file = dir.openNextFile();
     while (file)
     {
@@ -152,7 +221,7 @@ void Core::ls()
     }
 }
 
-void Core::cd(String path)
+void Kernel::cd(String path)
 {
     if(SPIFFS.exists(currentPath + path))
     {
@@ -171,55 +240,59 @@ void Core::cd(String path)
         reply("No such file found\r\n");
 }
 
-void Core::cat(String filename)
+void Kernel::cat(String filename, bool sudo)
 {
     if (SPIFFS.exists(currentPath + filename))
     {
-        File file = SPIFFS.open(currentPath + filename);
-        while(file.available())
-            reply((String)(char)file.read());
-        reply("\r\n");
-        file.close();
+        if (checkSudo(filename, sudo))
+        {
+            File file = SPIFFS.open(currentPath + filename);
+            while(file.available())
+                reply((String)(char)file.read());
+            reply("\r\n");
+            file.close();
+        }
     }
     else
         reply("No such file found\r\n");
 }
 
-void Core::nano(String filename)
+void Kernel::nano(String filename, String *options, bool sudo)
 {
-    String f;
-    f = filename.substring(0, 2) == "-a" ? filename.substring(3) : filename;
-    if (SPIFFS.exists(currentPath + f))
+    if (SPIFFS.exists(currentPath + filename))
     {
-        reply("File content:\r\n");
-        cat(f);
-        if (filename.substring(0, 2) == "-a")
-            reply("What to append to file:\r\n");
-        else
-            reply("New file content:\r\n");
-        String content = getCommand();
-        File file;
-        if (filename.substring(0, 2) == "-a")
-            file = SPIFFS.open(currentPath + f, filename.substring(1, 2).c_str());
-        else
-            file = SPIFFS.open(currentPath + f, "w");
+        if (checkSudo(filename, sudo))
+        {
+            reply("File content:\r\n");
+            cat(filename);
+            if (options[0] == "-a")
+                reply("What to append to file:\r\n");
+            else
+                reply("New file content:\r\n");
+            String content = waitString();
+            File file;
+            if (options[0] == "-a")
+                file = SPIFFS.open(currentPath + filename, "a");
+            else
+                file = SPIFFS.open(currentPath + filename, "w");
 
-        file.print(content);
-        file.close();
+            file.print(content);
+            file.close();
+        }
     }
     else
         reply("No such file found\r\n");
 }
 
-void Core::mkdir(String path)
+void Kernel::mkdir(String path)
 {
     SPIFFS.mkdir(currentPath + path);
 }
-void Core::rmdir(String path)
+void Kernel::rmdir(String path)
 {
     SPIFFS.rmdir(currentPath + path);
 }
-void Core::touch(String filename)
+void Kernel::touch(String filename)
 {
     if (!SPIFFS.exists(currentPath + filename))
     {
@@ -229,137 +302,97 @@ void Core::touch(String filename)
     else
         reply("File already exists\r\n");
 }
-void Core::rm(String filename)
+void Kernel::rm(String filename, bool sudo)
 {
     if (SPIFFS.exists(currentPath + filename))
-        SPIFFS.remove(currentPath + filename);
+    {
+        if(checkSudo(filename, sudo))
+        {
+            SPIFFS.remove(currentPath + filename);
+        }
+    }
     else
         reply("No such file found\r\n");
 }
-void Core::mv(String filename, String newFilename)
+void Kernel::mv(String filename, String newFilename, bool sudo)
 {
     if (SPIFFS.exists(currentPath + filename))
-        SPIFFS.rename(currentPath + filename, currentPath + newFilename);
+    {
+        if (checkSudo(filename, sudo))
+        {
+            SPIFFS.rename(currentPath + filename, currentPath + newFilename);
+        }
+    }
     else
         reply("No such file found\r\n");
 }
 
-void Core::exit()
+void Kernel::exit()
 {
     reply("Bye!\r\n");
     client.stop();
 }
 
-void Core::execute(String command)
+bool Kernel::checkSudo(String filename, bool sudo)
 {
-    //parse command and try to execute it
-    if(command == "ram")
-        RAM();
-    else if (command == "rom")
-        ROM();
-    else if (command == "ls")
-        ls();
-    else if (command.substring(0, 2) == "cd")
-        cd(command.substring(3));
-    else if (command.substring(0, 3) == "cat")
+    //sudo check for special files
+    if (filename == "config.json")
     {
-        if (command.substring(4) != "config.json")
-            cat(command.substring(4));
+        if (sudo)
+        {
+            reply("Password for sudo: ");
+            String password = waitString();
+            if (password != sudoPassword)
+            {
+                reply("Wrong password\r\n");
+                return false;
+            }
+            else
+                return true;
+        }
         else
+        {
             reply("Permission denied\r\n");
+            return false;
+        }
     }
-    else if (command.substring(0, 8) == "sudo cat")
-    {
-        reply("Password for sudo: ");
-        String password = getCommand();
-        if(password == sudoPassword)
-            cat(command.substring(9));
-        else
-            reply("Wrong password\r\n");
-    }
-    else if (command.substring(0, 4) == "nano")
-    {
-        if (command.substring(5) != "config.json")
-            nano(command.substring(5));
-        else
-            reply("Permission denied\r\n");
-    }
-    else if (command.substring(0, 9) == "sudo nano")
-    {
-        reply("Password for sudo: ");
-        String password = getCommand();
-        if (password == sudoPassword)
-            nano(command.substring(10));
-        else
-            reply("Wrong password\r\n");
-    }
-    else if (command.substring(0, 5) == "mkdir")
-    {
-        mkdir(command.substring(6));
-    }
-    else if (command.substring(0, 5) == "rmdir")
-    {
-        rmdir(command.substring(6));
-    }
-    else if (command.substring(0, 5) == "touch")
-    {
-        touch(command.substring(6));
-    }
-    else if (command.substring(0, 2) == "rm")
-    {
-        if (command.substring(3) != "config.json")
-            rm(command.substring(3));
-        else
-            reply("Permission denied\r\n");
-    }
-    else if (command.substring(0, 2) == "mv")
-    {
-        if (command.substring(3) != "config.json")
-            mv(command.substring(3, command.lastIndexOf(' ')), command.substring(command.lastIndexOf(' ') + 1));
-        else
-            reply("Permission denied\r\n");
-    }
-    else if (command.substring(0, 4) == "help")
-    {
-        help();
-    }
-    else if (command.substring(0, 4) == "exit")
-    {
-        exit();
-    }
-    else
-        reply("Unknown command\r\n");
+    return true;
 }
 
-String Core::getCommand()
+String Kernel::waitString()
 {
     while (!client.available() && client.connected()) { /*wait*/}
 
-    String command = "";
+    String result = "";
     while (client.available())
     {
-        command += (char)client.read();
+        result += (char)client.read();
         delay(3);
     }
-    Serial.println(command.substring(0, command.length() - 2));
-    
-    return command.substring(0, command.length() - 2);
+    result = result.substring(0, result.length() - 2);
+    Serial.println(result);
+    return result;
 }
 
-String Core::green(String text)
+Command Kernel::getCommand()
+{
+    return Command(waitString(), commands, commandsCount);
+}
+
+String Kernel::green(String text)
 {
     return "\u001b[32m" + text + "\u001b[0m";
 }
 
-String Core::yellow(String text)
+String Kernel::yellow(String text)
 {
     return "\u001b[33m" + text + "\u001b[0m";
 }
-String Core::red(String text)
+String Kernel::red(String text)
 {
     return "\u001b[31m" + text + "\u001b[0m";
 }
-String Core::blue(String text)
+String Kernel::blue(String text)
 {
     return "\u001b[34;1m" + text + "\u001b[0m";
 }

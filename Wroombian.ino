@@ -1,12 +1,12 @@
-#include "Core.h"
+#include "Kernel.h"
 
-Core core;
+Kernel kernel;
 
 void setup()
 {
-    core.init();
+    kernel.init();
 }
 void loop()
 {
-    core.handleClients();
+    kernel.handleClients();
 }
