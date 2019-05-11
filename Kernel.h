@@ -6,6 +6,8 @@
 #include "Command.h"
 #include <ArduinoJson.h>
 
+#define BLINK_SPEED 500 //how fast is cursor blinking (milliseconds)
+
 class Kernel {
 private:
     WiFiServer server;
@@ -19,14 +21,22 @@ private:
     String currentPath = "/";
 
     const int commandsCount = 13;
-    String *commands;
-    
-    String currentText = " ";
-    String buffer = "   ";
-    unsigned int cursor = 0;
-    bool cursorState = false;//cursor is shown or not
+    String commands[13] = {
+        "ram",
+        "rom",
+        "ls",
+        "cd",
+        "cat",
+        "nano",
+        "mkdir",
+        "rmdir",
+        "touch",
+        "rm",
+        "mv",
+        "help",
+        "exit"};
 
-    void pushBuffer(char c);
+    int countChars(String str, char c);
 
 public :
 
@@ -92,6 +102,8 @@ public :
     String waitString();
 
     void handleInput();
+
+    void printCurrentText();
 
     //wait for command from clients
     Command getCommand();

@@ -39,21 +39,6 @@ void Kernel::init()
 
     server.begin(23);
     server.setNoDelay(true);
-
-    commands = new String[commandsCount]{
-        "ram",
-        "rom",
-        "ls",
-        "cd",
-        "cat",
-        "nano",
-        "mkdir",
-        "rmdir",
-        "touch",
-        "rm",
-        "mv",
-        "help",
-        "exit"};
 }
 
 void Kernel::execute(Command command)
@@ -144,13 +129,12 @@ void Kernel::handleClients()
     //check client for data
     if (client && client.connected())
     {
-        /*if (client.available())
+        if (client.available())
         {
-            //get command from the client and tyr to execute it
+            //get command from the client and try to execute it
             execute(getCommand());
-            
-        }*/
-        handleInput();
+            printPath();
+        }
     }
     else
     {
@@ -163,13 +147,22 @@ void Kernel::handleClients()
 
 void Kernel::reply(String message)
 {
-    Serial.print(message);
+    //Serial.print(message);
     client.print(message);
 }
 
 void Kernel::printPath()
 {
     reply((String) green(username + "@" + machineName) + ":" + blue(currentPath) + "$ ");
+}
+
+int Kernel::countChars(String str, char c)
+{
+    int count = 0;
+    for (int i = 0; i < str.length(); i++)
+        if(str[i] == c)
+            count++;
+    return count;
 }
 
 void Kernel::help()
@@ -211,15 +204,19 @@ void Kernel::ROM()
 void Kernel::ls()
 {
     File dir;
-    if (currentPath == "/")
-        dir  = SPIFFS.open(currentPath);
-    else
-        dir = SPIFFS.open(currentPath.substring(0, currentPath.length() - 1));
+    dir = SPIFFS.open(currentPath);
         
     File file = dir.openNextFile();
     while (file)
     {
-        reply((String)file.name() + "\t\t" + file.size() + " Bytes\r\n");
+        String name = file.name();
+        /*if (countChars(name, '/') == 1)
+        {*/
+            if (name.substring(name.lastIndexOf("/")) != "/.empty")
+                reply((String)name/*.substring(name.lastIndexOf("/"))*/ + "\t\t" + file.size() + " Bytes\r\n");
+            else
+                reply((String)name.substring(name.lastIndexOf("/")) + "\r\n");
+        //}
         file = dir.openNextFile();
     }
 }
@@ -236,7 +233,7 @@ void Kernel::cd(String path)
         {
             String copy = currentPath;
             copy.remove(currentPath.lastIndexOf('/'));
-            currentPath = copy.substring(0, copy.lastIndexOf('/') + 1);
+            currentPath = copy.substring(0, copy.lastIndexOf('/'));
         }
     }
     else 
@@ -245,7 +242,7 @@ void Kernel::cd(String path)
 
 void Kernel::cat(String filename, bool sudo)
 {
-    if (SPIFFS.exists(currentPath + filename))
+    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if (checkSudo(filename, sudo))
         {
@@ -262,7 +259,7 @@ void Kernel::cat(String filename, bool sudo)
 
 void Kernel::nano(String filename, String *options, bool sudo)
 {
-    if (SPIFFS.exists(currentPath + filename))
+    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if (checkSudo(filename, sudo))
         {
@@ -289,16 +286,28 @@ void Kernel::nano(String filename, String *options, bool sudo)
 
 void Kernel::mkdir(String path)
 {
-    SPIFFS.mkdir(currentPath + path);
+    if (!SPIFFS.exists(currentPath + path + "/.empty"))
+    {
+        File f = SPIFFS.open(currentPath + path + "/.empty", "w");
+        f.close();
+    }
 }
 void Kernel::rmdir(String path)
 {
-    SPIFFS.rmdir(currentPath + path);
+    if (SPIFFS.exists(currentPath + path + "/.empty"))
+    {
+        SPIFFS.remove(currentPath + path + "/.empty");
+    }
 }
 void Kernel::touch(String filename)
 {
     if (!SPIFFS.exists(currentPath + filename))
     {
+        if (!SPIFFS.exists(currentPath + filename + "/.empty"))
+        {
+            File f = SPIFFS.open(currentPath + filename + "/.empty", "w");
+            f.close();
+        }
         File f = SPIFFS.open(currentPath + filename, "w");
         f.close();
     }
@@ -307,7 +316,7 @@ void Kernel::touch(String filename)
 }
 void Kernel::rm(String filename, bool sudo)
 {
-    if (SPIFFS.exists(currentPath + filename))
+    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if(checkSudo(filename, sudo))
         {
@@ -319,7 +328,7 @@ void Kernel::rm(String filename, bool sudo)
 }
 void Kernel::mv(String filename, String newFilename, bool sudo)
 {
-    if (SPIFFS.exists(currentPath + filename))
+    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if (checkSudo(filename, sudo))
         {
@@ -375,58 +384,6 @@ String Kernel::waitString()
     result = result.substring(0, result.length() - 2);
     Serial.println(result);
     return result;
-}
-
-void Kernel::handleInput()
-{
-    if(client.available())
-    {
-        char c = (char)client.read();
-        pushBuffer(c); 
-
-        if(buffer[0] == 27 && buffer.substring(1, 3) == "[D")
-        {
-            //left
-            if(cursor > 0)
-                cursor--;
-        }
-        else if(buffer[0] == 27 && buffer.substring(1, 3) == "[C")
-        {
-            //right
-            if(cursor < currentText.length())
-                cursor++;
-        }
-        else if(buffer[0] == 27 && buffer.substring(1, 3) == "[A")
-        {
-            //up
-        }
-        else if(buffer[0] == 27 && buffer.substring(1, 3) == "[B")
-        {
-            //down
-        }
-        else if(buffer[1] == '\r' && buffer[2] == '\n')
-        {
-            //enter
-            printPath();
-        }
-        else if(buffer[2] == 27)
-        {
-            //ESC
-        }
-        else
-        {
-            //any other character
-            currentText += c;
-            cursor++;
-        }
-    }
-}
-
-void Kernel::pushBuffer(char c)
-{
-    buffer[0] = buffer[1];
-    buffer[1] = buffer[2];
-    buffer[2] = c;
 }
 
 Command Kernel::getCommand()
