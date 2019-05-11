@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include "SPIFFS.h"
 #include "FS.h"
 #include "Command.h"
@@ -9,6 +10,7 @@ class Kernel {
 private:
     WiFiServer server;
     WiFiClient client;
+    WiFiMulti wifi;
 
     String username;
     String machineName = "Wroom";
@@ -18,6 +20,13 @@ private:
 
     const int commandsCount = 13;
     String *commands;
+    
+    String currentText = " ";
+    String buffer = "   ";
+    unsigned int cursor = 0;
+    bool cursorState = false;//cursor is shown or not
+
+    void pushBuffer(char c);
 
 public :
 
@@ -81,6 +90,8 @@ public :
 
     //wait till client enters a string
     String waitString();
+
+    void handleInput();
 
     //wait for command from clients
     Command getCommand();
