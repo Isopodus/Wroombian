@@ -37,6 +37,10 @@ private:
         "exit"};
 
     int countChars(String str, char c);
+    String makeTab(String str);
+
+    int indexOf(String str, char c, int wich);
+     int lastIndexOf(String str, char c, int wich = 0);
 
 public :
 

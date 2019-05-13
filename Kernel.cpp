@@ -20,7 +20,7 @@ void Kernel::init()
         password = config["password"].as<String>();
         sudoPassword = config["sudoPassword"].as<String>();
 
-        WiFi.softAP("Wroom", "wroomb1an");
+        //WiFi.softAP("Wroom", "wroomb1an");
     }
 
     Serial.begin(115200);
@@ -165,6 +165,40 @@ int Kernel::countChars(String str, char c)
     return count;
 }
 
+String Kernel::makeTab(String str)
+{
+    String res = "";
+    for (int i = 0; i < 30 - str.length(); i++)
+        res += ' ';
+    return res;
+}
+
+int Kernel::indexOf(String str, char c, int wich)
+{
+    int count = 0;
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (str[i] == c)
+            count++;
+        if (count == wich)
+            return i;
+    }
+    return -1;
+}
+
+int Kernel::lastIndexOf(String str, char c, int wich)
+{
+    int count = 0;
+    for (int i = str.length() - 1; i >= 0 ; i--)
+    {
+        if (str[i] == c)
+            count++;
+        if (count == wich)
+            return i;
+    }
+    return -1;
+}
+
 void Kernel::help()
 {
     reply((String)
@@ -205,35 +239,52 @@ void Kernel::ls()
 {
     File dir;
     dir = SPIFFS.open(currentPath);
-        
+    String message = "";
+    String shownDirs = "";
     File file = dir.openNextFile();
     while (file)
     {
-        String name = file.name();
-        /*if (countChars(name, '/') == 1)
-        {*/
-            if (name.substring(name.lastIndexOf("/")) != "/.empty")
-                reply((String)name/*.substring(name.lastIndexOf("/"))*/ + "\t\t" + file.size() + " Bytes\r\n");
-            else
-                reply((String)name.substring(name.lastIndexOf("/")) + "\r\n");
-        //}
+        String path = file.name();
+
+        //current dirname
+        // |   |  |  |
+        // /some/_path/file.txt
+        String dirname = path.substring(currentPath.length() - 1, indexOf(path, '/', countChars(currentPath, '/')));
+        String filename = path.substring(path.lastIndexOf('/'));
+        if (filename == "/.empty" && shownDirs.indexOf(dirname) == -1)
+        {
+            message += (String)dirname + makeTab(dirname) + "DIR\r\n";
+            if (dirname != "/")
+                shownDirs += " " + dirname;
+        }
+        else if (filename != "/.empty" && shownDirs.indexOf(dirname) == -1)
+        {
+            message += (String)filename + makeTab(filename) + file.size() + " Bytes\r\n";
+            if (dirname != "/")
+                shownDirs += " " + dirname;
+        }
+
         file = dir.openNextFile();
     }
+    reply(message);
 }
 
 void Kernel::cd(String path)
 {
-    if(SPIFFS.exists(currentPath + path))
+    if (currentPath != "/" && path[0] != '/' && path != "..")
+        path = "/" + path;
+    if(SPIFFS.exists(currentPath + path + "/.empty"))
     {
-        currentPath = currentPath + path.substring(0, path.lastIndexOf('/') + 1);
+        currentPath = currentPath + path.substring(0, path.lastIndexOf('/'));
     }
     else if (path == "..")
     {
         if (currentPath != "/")
         {
-            String copy = currentPath;
-            copy.remove(currentPath.lastIndexOf('/'));
-            currentPath = copy.substring(0, copy.lastIndexOf('/'));
+            if(countChars(currentPath, '/') != 1)
+                currentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+            else
+                currentPath = "/";
         }
     }
     else 
@@ -242,6 +293,8 @@ void Kernel::cd(String path)
 
 void Kernel::cat(String filename, bool sudo)
 {
+    if (currentPath != "/" && filename[0] != '/')
+        filename = "/" + filename;
     if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if (checkSudo(filename, sudo))
@@ -259,6 +312,8 @@ void Kernel::cat(String filename, bool sudo)
 
 void Kernel::nano(String filename, String *options, bool sudo)
 {
+    if (currentPath != "/" && filename[0] != '/')
+        filename = "/" + filename;
     if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if (checkSudo(filename, sudo))
@@ -286,6 +341,8 @@ void Kernel::nano(String filename, String *options, bool sudo)
 
 void Kernel::mkdir(String path)
 {
+    if (currentPath != "/" && path[0] != '/')
+        path = "/" + path;
     if (!SPIFFS.exists(currentPath + path + "/.empty"))
     {
         File f = SPIFFS.open(currentPath + path + "/.empty", "w");
@@ -294,6 +351,8 @@ void Kernel::mkdir(String path)
 }
 void Kernel::rmdir(String path)
 {
+    if (currentPath != "/" && path[0] != '/')
+        path = "/" + path;
     if (SPIFFS.exists(currentPath + path + "/.empty"))
     {
         SPIFFS.remove(currentPath + path + "/.empty");
@@ -301,13 +360,16 @@ void Kernel::rmdir(String path)
 }
 void Kernel::touch(String filename)
 {
+    if (currentPath != "/" && filename[0] != '/')
+        filename = "/" + filename;
     if (!SPIFFS.exists(currentPath + filename))
     {
-        if (!SPIFFS.exists(currentPath + filename + "/.empty"))
+        if (currentPath != "/" && !SPIFFS.exists(currentPath + filename.substring(0, filename.lastIndexOf('/')) + "/.empty"))
         {
-            File f = SPIFFS.open(currentPath + filename + "/.empty", "w");
+            File f = SPIFFS.open(currentPath + filename.substring(0, filename.lastIndexOf('/')) + "/.empty", "w");
             f.close();
         }
+
         File f = SPIFFS.open(currentPath + filename, "w");
         f.close();
     }
@@ -316,6 +378,8 @@ void Kernel::touch(String filename)
 }
 void Kernel::rm(String filename, bool sudo)
 {
+    if (currentPath != "/" && filename[0] != '/')
+        filename = "/" + filename;
     if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if(checkSudo(filename, sudo))
@@ -328,6 +392,8 @@ void Kernel::rm(String filename, bool sudo)
 }
 void Kernel::mv(String filename, String newFilename, bool sudo)
 {
+    if (currentPath != "/" && filename[0] != '/')
+        filename = "/" + filename;
     if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
     {
         if (checkSudo(filename, sudo))
