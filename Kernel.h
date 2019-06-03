@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
-#include "SPIFFS.h"
-#include "FS.h"
 #include "Command.h"
 #include <ArduinoJson.h>
+#include "Filesystem.h"
 
-#define BLINK_SPEED 500 //how fast is cursor blinking (milliseconds)
+#define AP_SSID "Wroom"
+#define AP_PASS "wroomb1an"
 
 class Kernel {
 private:
@@ -14,11 +14,12 @@ private:
     WiFiClient client;
     WiFiMulti wifi;
 
+    Filesystem fs;
+
     String username;
     String machineName = "Wroom";
     String password = "5866";
     String sudoPassword = "5866";
-    String currentPath = "/";
 
     const int commandsCount = 13;
     String commands[13] = {
@@ -40,7 +41,7 @@ private:
     String makeTab(String str);
 
     int indexOf(String str, char c, int wich);
-     int lastIndexOf(String str, char c, int wich = 0);
+    int lastIndexOf(String str, char c, int wich = 0);
 
 public :
 

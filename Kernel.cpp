@@ -2,26 +2,21 @@
 
 void Kernel::init()
 {
-    SPIFFS.begin();
+    fs.init();
 
     StaticJsonBuffer<1024> jsonBuffer;
-    File configFile = SPIFFS.open("/config.json");
-    if (configFile)
+    JsonObject &config = jsonBuffer.parseObject(fs.readFile("config.json"));
+    
+    for (int i = 0; i < config["wifiSsids"].size(); i++)
     {
-        JsonObject &config = jsonBuffer.parseObject(configFile);
-
-        //set config
-        for (int i = 0; i < config["wifiSsids"].size(); i++)
-        {
-            wifi.addAP(config["wifiSsids"][i].as<char *>(), config["wifiPasswords"][i].as<char *>());
-        }
-
-        machineName = config["machineName"].as<String>();
-        password = config["password"].as<String>();
-        sudoPassword = config["sudoPassword"].as<String>();
-
-        //WiFi.softAP("Wroom", "wroomb1an");
+        wifi.addAP(config["wifiSsids"][i].as<char *>(), config["wifiPasswords"][i].as<char *>());
     }
+
+    machineName = config["machineName"].as<String>();
+    password = config["password"].as<String>();
+    sudoPassword = config["sudoPassword"].as<String>();
+
+    WiFi.softAP(AP_SSID, AP_PASS);
 
     Serial.begin(115200);
     Serial.print("Connecting");
@@ -153,16 +148,7 @@ void Kernel::reply(String message)
 
 void Kernel::printPath()
 {
-    reply((String) green(username + "@" + machineName) + ":" + blue(currentPath) + "$ ");
-}
-
-int Kernel::countChars(String str, char c)
-{
-    int count = 0;
-    for (int i = 0; i < str.length(); i++)
-        if(str[i] == c)
-            count++;
-    return count;
+    reply((String) green(username + "@" + machineName) + ":" + blue(fs.currentPath) + "$ ");
 }
 
 String Kernel::makeTab(String str)
@@ -232,74 +218,33 @@ void Kernel::RAM()
 void Kernel::ROM()
 {
     float percent = SPIFFS.usedBytes() / float(SPIFFS.totalBytes()) * 100.0;
-    reply((String) "ROM available: " + (SPIFFS.totalBytes() - SPIFFS.usedBytes()) + " Bytes (" + percent + "% used)\r\n");
+    int available = SPIFFS.totalBytes() - SPIFFS.usedBytes();
+    reply((String) "ROM available: " + available + " Bytes (" + percent + "% used)\r\n");
 }
 
 void Kernel::ls()
 {
-    File dir;
-    dir = SPIFFS.open(currentPath);
-    String message = "";
-    String shownDirs = "";
-    File file = dir.openNextFile();
-    while (file)
-    {
-        String path = file.name();
-
-        //current dirname
-        // |   |  |  |
-        // /some/_path/file.txt
-        String dirname = path.substring(currentPath.length() - 1, indexOf(path, '/', countChars(currentPath, '/')));
-        String filename = path.substring(path.lastIndexOf('/'));
-        if (filename == "/.empty" && shownDirs.indexOf(dirname) == -1)
-        {
-            message += (String)dirname + makeTab(dirname) + "DIR\r\n";
-            if (dirname != "/")
-                shownDirs += " " + dirname;
-        }
-        else if (filename != "/.empty" && shownDirs.indexOf(dirname) == -1)
-        {
-            message += (String)filename + makeTab(filename) + file.size() + " Bytes\r\n";
-            if (dirname != "/")
-                shownDirs += " " + dirname;
-        }
-
-        file = dir.openNextFile();
-    }
-    reply(message);
+    reply(fs.ls());
 }
 
 void Kernel::cd(String path)
 {
-    if (currentPath != "/" && path[0] != '/' && path != "..")
-        path = "/" + path;
-    if(SPIFFS.exists(currentPath + path + "/.empty"))
+    if (path == "..")
     {
-        currentPath = currentPath + path.substring(0, path.lastIndexOf('/'));
+        fs.goBack();
     }
-    else if (path == "..")
-    {
-        if (currentPath != "/")
-        {
-            if(countChars(currentPath, '/') != 1)
-                currentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-            else
-                currentPath = "/";
-        }
-    }
-    else 
+    else if (!fs.goToDir(path))
         reply("No such file found\r\n");
 }
 
 void Kernel::cat(String filename, bool sudo)
 {
-    if (currentPath != "/" && filename[0] != '/')
-        filename = "/" + filename;
-    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
+
+    if (fs.fileExists(filename))
     {
         if (checkSudo(filename, sudo))
         {
-            File file = SPIFFS.open(currentPath + filename);
+            File file = fs.getFile(fs.currentPath + filename);
             while(file.available())
                 reply((String)(char)file.read());
             reply("\r\n");
@@ -312,9 +257,7 @@ void Kernel::cat(String filename, bool sudo)
 
 void Kernel::nano(String filename, String *options, bool sudo)
 {
-    if (currentPath != "/" && filename[0] != '/')
-        filename = "/" + filename;
-    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
+    if (fs.fileExists(filename))
     {
         if (checkSudo(filename, sudo))
         {
@@ -327,9 +270,9 @@ void Kernel::nano(String filename, String *options, bool sudo)
             String content = waitString();
             File file;
             if (options[0] == "-a")
-                file = SPIFFS.open(currentPath + filename, "a");
+                file = fs.getFile(fs.currentPath + filename, "a");
             else
-                file = SPIFFS.open(currentPath + filename, "w");
+                file = fs.getFile(fs.currentPath + filename, "w");
 
             file.print(content);
             file.close();
@@ -341,50 +284,34 @@ void Kernel::nano(String filename, String *options, bool sudo)
 
 void Kernel::mkdir(String path)
 {
-    if (currentPath != "/" && path[0] != '/')
-        path = "/" + path;
-    if (!SPIFFS.exists(currentPath + path + "/.empty"))
-    {
-        File f = SPIFFS.open(currentPath + path + "/.empty", "w");
-        f.close();
-    }
+    fs.mkdir(path);
 }
 void Kernel::rmdir(String path)
 {
-    if (currentPath != "/" && path[0] != '/')
-        path = "/" + path;
-    if (SPIFFS.exists(currentPath + path + "/.empty"))
-    {
-        SPIFFS.remove(currentPath + path + "/.empty");
-    }
+    fs.rmdir(path);
 }
 void Kernel::touch(String filename)
 {
-    if (currentPath != "/" && filename[0] != '/')
-        filename = "/" + filename;
-    if (!SPIFFS.exists(currentPath + filename))
+    
+    if (!fs.fileExists(filename))
     {
-        if (currentPath != "/" && !SPIFFS.exists(currentPath + filename.substring(0, filename.lastIndexOf('/')) + "/.empty"))
+        if (!fs.dirExists(filename))
         {
-            File f = SPIFFS.open(currentPath + filename.substring(0, filename.lastIndexOf('/')) + "/.empty", "w");
-            f.close();
+            fs.mkdir(filename.substring(0, filename.lastIndexOf('/')));
         }
 
-        File f = SPIFFS.open(currentPath + filename, "w");
-        f.close();
+        fs.touch(filename);
     }
     else
         reply("File already exists\r\n");
 }
 void Kernel::rm(String filename, bool sudo)
 {
-    if (currentPath != "/" && filename[0] != '/')
-        filename = "/" + filename;
-    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
+    if (fs.fileExists(filename))
     {
         if(checkSudo(filename, sudo))
         {
-            SPIFFS.remove(currentPath + filename);
+            fs.rm(filename);
         }
     }
     else
@@ -392,13 +319,11 @@ void Kernel::rm(String filename, bool sudo)
 }
 void Kernel::mv(String filename, String newFilename, bool sudo)
 {
-    if (currentPath != "/" && filename[0] != '/')
-        filename = "/" + filename;
-    if (SPIFFS.exists(currentPath + filename) && filename.substring(filename.lastIndexOf('/')) != "/.empty")
+    if (fs.fileExists(filename))
     {
         if (checkSudo(filename, sudo))
         {
-            SPIFFS.rename(currentPath + filename, currentPath + newFilename);
+            fs.mv(filename, newFilename);
         }
     }
     else
