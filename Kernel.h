@@ -4,6 +4,7 @@
 #include "Command.h"
 #include <ArduinoJson.h>
 #include "Filesystem.h"
+#include "PyInterpreter.h"
 
 #define AP_SSID "Wroom"
 #define AP_PASS "wroomb1an"
@@ -15,14 +16,15 @@ private:
     WiFiMulti wifi;
 
     Filesystem fs;
+    PyInterpreter pyInterpreter;
 
     String username;
-    String machineName = "Wroom";
-    String password = "5866";
-    String sudoPassword = "5866";
+    String machineName = "Wroom32";
+    String password = "";
+    String sudoPassword = "";
 
-    const int commandsCount = 13;
-    String commands[13] = {
+    static const int commandsCount = 14;
+    String commands[commandsCount] = {
         "ram",
         "rom",
         "ls",
@@ -35,19 +37,14 @@ private:
         "rm",
         "mv",
         "help",
-        "exit"};
-
-    int countChars(String str, char c);
-    String makeTab(String str);
-
-    int indexOf(String str, char c, int wich);
-    int lastIndexOf(String str, char c, int wich = 0);
+        "exit",
+        "python"
+    };
 
 public :
 
-    //start telnet server
-    void
-    init();
+    //initialize server
+    void init();
 
     //deal with clients
     void handleClients();
@@ -97,6 +94,9 @@ public :
     //close connection
     void exit();
     
+    //run python code
+    void python(String filename, String *options, bool sudo);
+
     //execute some command
     void execute(Command command);
 
@@ -118,4 +118,5 @@ public :
     String yellow(String text);
     String red(String text);
     String blue(String text);
+
 };

@@ -1,13 +1,5 @@
 #include "Filesystem.h"
 
-Filesystem::Filesystem()
-{
-}
-
-Filesystem::~Filesystem()
-{
-}
-
 void Filesystem::init()
 {
     SPIFFS.begin();
@@ -167,7 +159,7 @@ String Filesystem::ls()
 
         if (path.length() > 1 && path != currentPath.substring(1))
         {
-            Serial.println("Path: " + path);
+            //Serial.println("Path: " + path);
             String filename = path.substring(path.lastIndexOf('/'));
 
             path.remove(0, currentPath.length());
@@ -183,9 +175,9 @@ String Filesystem::ls()
             if (dirname[0] != '/')
                 dirname = "/" + dirname;
 
-            Serial.println("Cut path: " + path);
-            Serial.println("DIR: " + dirname);
-            Serial.println("FILE: " + filename);
+            //Serial.println("Cut path: " + path);
+            //Serial.println("DIR: " + dirname);
+            //Serial.println("FILE: " + filename);
 
             if (filename == "/.empty" && shown.indexOf(dirname) == -1 && dirname != "/.empty") // if it is directory and it was not added
             {

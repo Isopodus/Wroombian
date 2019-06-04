@@ -32,6 +32,7 @@ void Kernel::init()
     Serial.print(WiFi.localIP());
     Serial.println();
 
+    // start telnet server
     server.begin(23);
     server.setNoDelay(true);
 }
@@ -79,6 +80,9 @@ void Kernel::execute(Command command)
         break;
     case 12:
         exit();
+        break;
+    case 13:
+        python(command.args[0], command.options, command.sudo);
         break;
     default:
         reply("Unknown command\r\n");
@@ -149,40 +153,6 @@ void Kernel::reply(String message)
 void Kernel::printPath()
 {
     reply((String) green(username + "@" + machineName) + ":" + blue(fs.currentPath) + "$ ");
-}
-
-String Kernel::makeTab(String str)
-{
-    String res = "";
-    for (int i = 0; i < 30 - str.length(); i++)
-        res += ' ';
-    return res;
-}
-
-int Kernel::indexOf(String str, char c, int wich)
-{
-    int count = 0;
-    for (int i = 0; i < str.length(); i++)
-    {
-        if (str[i] == c)
-            count++;
-        if (count == wich)
-            return i;
-    }
-    return -1;
-}
-
-int Kernel::lastIndexOf(String str, char c, int wich)
-{
-    int count = 0;
-    for (int i = str.length() - 1; i >= 0 ; i--)
-    {
-        if (str[i] == c)
-            count++;
-        if (count == wich)
-            return i;
-    }
-    return -1;
 }
 
 void Kernel::help()
@@ -326,6 +296,37 @@ void Kernel::exit()
 {
     reply("Bye!\r\n");
     client.stop();
+}
+
+void Kernel::python(String filename, String *options, bool sudo)
+{
+    if (checkSudo(filename, sudo))
+    {
+        String code = fs.readFile(filename);
+        reply("Input: ");
+        String input = waitString();
+
+        // run code
+        if (pyInterpreter.runCode(code, input))
+        {
+            if (pyInterpreter.errors == "")
+                reply("\r\n" + green("Result:\r\n"));
+            else
+                reply("\r\n" + yellow("Result:\r\n"));
+
+            reply(pyInterpreter.result + "\r\n");
+
+            // show stats if verbose option is set
+            if (options[0] == "-v")
+                reply(blue("Stats:\r\n" + pyInterpreter.stats + "\r\n"));
+
+            // shos errors if needed
+            if (pyInterpreter.errors != "")
+                reply("\r\n" + red("Errors:\r\n" + pyInterpreter.errors + "\r\n"));
+        }
+        else
+            reply("\r\n" + red("Connection refused or file is empty\r\n"));
+    }
 }
 
 bool Kernel::checkSudo(String filename, bool sudo)

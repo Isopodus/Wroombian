@@ -27,9 +27,4 @@ public:
     void mv(String filePath, String newFilePath); // rename or move file
 
     String ls(); // get list of files and dirs as message
-
-    Filesystem();
-    ~Filesystem();
 };
-
-
