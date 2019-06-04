@@ -192,8 +192,8 @@ void Kernel::help()
             blue("help - show this message\r\n") +
             blue("ram - get RAM load\r\n") +
             blue("rom - get ROM load\r\n") +
-            blue("ls - list files\r\n") +
-            blue("cd <path> - go to file\r\n") +
+            blue("ls - list files and directories\r\n") +
+            blue("cd <path> - go to directory\r\n") +
             blue("cat <path> - print file content\r\n") +
             blue("nano <path> - rewrite file\r\n") +
             blue("nano -a <path> - append to file\r\n") +
