@@ -25,7 +25,7 @@ You can use cat and nano with sudo to see or edit config file (f.e. sudo cat con
 Be carefull when editing config.json from terminal, wrong changes may cause system malfunction!
 
 ## Limitations: 
-SPIFFS on ESP32 does not fully supports folders, so to "simulate" them i'm creating ".empty" file in every folder created.
+SPIFFS on ESP32 does not fully support folders, so to "simulate" them i'm creating ".empty" file in every folder created.
 
 ## Connection
 To connect to device you can use Telnet client soft, but I'd recommend <a href="https://www.putty.org/">PuTTY</a> (e.g. standard Windows 7 Telnet client works badly because is sends any printed letter immidiately). IP adress is shown in serial monitor at startup, port is 23. 
