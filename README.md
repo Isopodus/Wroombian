@@ -3,7 +3,7 @@
 
 *Made just for fun, but can be extended to something more useful with your help.*
 ## Installation
-Project uses internal SPIFFS of ESP32 as filesystem. In order to make it work you need to install <a href="https://github.com/me-no-dev/arduino-esp32fs-plugin">Arduino ESP32 filesystem uploader</a> to upload "data" folder contents to ESP. You should also change the default settings in "config.json" file, before uploading it to SPIFFS. Set Partition scheme of board to "No OTA 2MB APP/2MB SPIFFS" (optional but recommended) and than upload code with regular Arduino IDE.
+Project uses internal SPIFFS of ESP32 as filesystem. In order to make it work you need to install <a href="https://github.com/me-no-dev/arduino-esp32fs-plugin">Arduino ESP32 filesystem uploader</a> to upload "data" folder contents to ESP. You should also change the default settings in "config.json" file, before uploading it to SPIFFS and set Partition scheme of board to "No OTA 2MB APP/2MB SPIFFS" (optional but recommended). Than upload code with a regular Arduino IDE.
 
 ## Available commands: 
 - help - show help message
