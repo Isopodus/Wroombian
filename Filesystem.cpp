@@ -48,7 +48,6 @@ String Filesystem::readFile(String filePath)
         content = file.readString();
         file.close();   
     }
-    Serial.println(content);
     return content;
 }
 
@@ -62,7 +61,7 @@ File Filesystem::getFile(String filePath, String mode)
     return File();
 }
 
-bool Filesystem::dirExists(String dirPath)
+bool Filesystem::dirExists(String &dirPath)
 {
     checkSlash(dirPath);
     Serial.println(dirPath);
@@ -74,7 +73,7 @@ bool Filesystem::dirExists(String dirPath)
         return false;
 }
 
-bool Filesystem::fileExists(String filePath)
+bool Filesystem::fileExists(String &filePath)
 {
     checkSlash(filePath);
 
@@ -91,7 +90,7 @@ bool Filesystem::goToDir(String dirPath)
     if (dirExists(dirPath))
     {
         // change path to requested dir
-        currentPath = currentPath + dirPath.substring(0, dirPath.lastIndexOf('/'));
+        currentPath = currentPath + dirPath;
         return true;
     }
     return false;
@@ -103,7 +102,7 @@ bool Filesystem::goBack()
     if (currentPath != "/")
     {
         // go 1 dir back
-        if (currentPath.length() > 1 && currentPath.indexOf('/') != 0)
+        if (currentPath.length() > 1 && currentPath.lastIndexOf('/') != 0)
         {
             currentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
             return false;
@@ -129,14 +128,26 @@ void Filesystem::mkdir(String dirPath)
 void Filesystem::rmdir(String dirPath)
 {
     if (dirExists(dirPath))
-        SPIFFS.remove(currentPath + dirPath + "/.empty");
+    {
+        File dir = SPIFFS.open(currentPath + dirPath);
+        File file = dir.openNextFile();
+
+        while (file)
+        {
+            SPIFFS.remove(file.name());
+            file = dir.openNextFile();
+        }
+    }
+        
 }
 
 bool Filesystem::touch(String filePath)
 {
     if (!fileExists(filePath))
     {
-        SPIFFS.remove(currentPath + filePath);
+        File f = SPIFFS.open(currentPath + filePath, "w");
+        f.close();
+        return true;
     }
 
     return false;
@@ -153,25 +164,35 @@ String Filesystem::ls()
     while (file)
     {
         String path = file.name();
-        //Serial.println(path);
 
         if (path.length() > 1 && path != currentPath.substring(1))
         {
+            Serial.println("Path: " + path);
             String filename = path.substring(path.lastIndexOf('/'));
 
             path.remove(0, currentPath.length());
+
+            if (path[0] == '/')
+                path.remove(0, 1);
 
             //current dirname
             // |   |  |  |
             // /some/_path/file.txt
             String dirname = path.substring(0, path.indexOf('/'));
-            
-            if (filename == "/.empty" && shown.indexOf(dirname) == -1) // if it is directory and it was not added
+
+            if (dirname[0] != '/')
+                dirname = "/" + dirname;
+
+            Serial.println("Cut path: " + path);
+            Serial.println("DIR: " + dirname);
+            Serial.println("FILE: " + filename);
+
+            if (filename == "/.empty" && shown.indexOf(dirname) == -1 && dirname != "/.empty") // if it is directory and it was not added
             {
                 message += (String)dirname + makeTab(dirname) + "DIR\r\n";
                 shown += dirname + " ";
             }
-            else if (filename != "/.empty" && shown.indexOf(filename) == -1) // if it is file and it was not added
+            else if (filename != "/.empty" && shown.indexOf(dirname) == -1 && shown.indexOf(filename) == -1) // if it is file and it was not added
             {
                 message += (String)filename + makeTab(filename) + (int)file.size() + " Bytes\r\n";
                 shown += filename + " ";
@@ -192,5 +213,6 @@ void Filesystem::rm(String filePath)
 void Filesystem::mv(String filePath, String newFilePath)
 {
     checkSlash(filePath);
+    checkSlash(newFilePath);
     SPIFFS.rename(currentPath + filePath, currentPath + newFilePath);
 }

@@ -1,1 +1,1 @@
-{"machineName": "Wroom32", "wifiSsids": ["delta-V", "mandarinka"], "wifiPasswords": ["iso9721a", "mandarinka2017"], "password": "", "sudoPassword": ""}
+{"machineName": "Wroom32", "wifiSsids": ["ssid1", "ssid2"], "wifiPasswords": ["pass1", "pass2"], "password": "", "sudoPassword": ""}

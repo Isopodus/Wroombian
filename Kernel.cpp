@@ -204,8 +204,6 @@ void Kernel::help()
             blue("mv <path1> <path2> - move or rename file\r\n") +
             blue("exit - close connection and exit\r\n") +
             yellow("You can use cat and nano with sudo to see or edit config file\r\n") +
-            red("ls does not show empty folders\r\n") +
-            red("cd works only if there is some file at the end of given path (f.e. cd path/file.txt)\r\n") +
             red("Be carefull when editing config.json, wrong changes may cause system malfunction!\r\n"));
 }
 
@@ -234,7 +232,7 @@ void Kernel::cd(String path)
         fs.goBack();
     }
     else if (!fs.goToDir(path))
-        reply("No such file found\r\n");
+        reply("No such directory found\r\n");
 }
 
 void Kernel::cat(String filename, bool sudo)
@@ -244,7 +242,7 @@ void Kernel::cat(String filename, bool sudo)
     {
         if (checkSudo(filename, sudo))
         {
-            File file = fs.getFile(fs.currentPath + filename);
+            File file = fs.getFile(filename);
             while(file.available())
                 reply((String)(char)file.read());
             reply("\r\n");
@@ -270,9 +268,9 @@ void Kernel::nano(String filename, String *options, bool sudo)
             String content = waitString();
             File file;
             if (options[0] == "-a")
-                file = fs.getFile(fs.currentPath + filename, "a");
+                file = fs.getFile(filename, "a");
             else
-                file = fs.getFile(fs.currentPath + filename, "w");
+                file = fs.getFile(filename, "w");
 
             file.print(content);
             file.close();
@@ -292,14 +290,8 @@ void Kernel::rmdir(String path)
 }
 void Kernel::touch(String filename)
 {
-    
     if (!fs.fileExists(filename))
     {
-        if (!fs.dirExists(filename))
-        {
-            fs.mkdir(filename.substring(0, filename.lastIndexOf('/')));
-        }
-
         fs.touch(filename);
     }
     else
