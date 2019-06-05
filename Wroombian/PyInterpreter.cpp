@@ -4,12 +4,12 @@ bool PyInterpreter::runCode(String code, String input)
 {
     if (code == "")
         return false;
-
-    client.begin(REXTESTER_HOST);
     
+    client.begin(REXTESTER_HOST);
+
     StaticJsonBuffer<2048> jsonBuffer;
     JsonObject &payloadJson = jsonBuffer.createObject();
-    payloadJson["LanguageChoice"] = "5";
+    payloadJson["LanguageChoice"] = "24";
     payloadJson["Program"] = code;
     payloadJson["Input"] = input;
     payloadJson["CompilerArgs"] = "";
@@ -38,6 +38,16 @@ bool PyInterpreter::runCode(String code, String input)
         result.replace("\n", "\r\n");
         errors.replace("\n", "\r\n");
         stats.replace("\n", "\r\n");
+
+        // replace some unicode sequences
+        result.replace("u0026", "&");
+        result.replace("u0027", "\'");
+        result.replace("u003c", "<");
+        result.replace("u003e", ">");
+        errors.replace("u0026", "&");
+        errors.replace("u0027", "\'");
+        errors.replace("u003c", "<");
+        errors.replace("u003e", ">");
 
         return true;
     }
