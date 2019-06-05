@@ -36,7 +36,7 @@ If WiFi is not connecting you can connect to devices WiFi access point (SSID: Wr
 - ~~Folders support~~
 - Changing settings from terminal rather than through file
 - External SD card support
-- Web python interpreter (see <a href="https://rextester.com/main">Rextester</a>)
+- ~~Web python interpreter (see <a href="https://rextester.com/main">Rextester</a>)~~
 - Simple web browser
 
 #### Additional info
