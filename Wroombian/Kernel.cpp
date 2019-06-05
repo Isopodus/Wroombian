@@ -82,6 +82,7 @@ void Kernel::execute(Command command)
         exit();
         break;
     case 13:
+    case 14:
         python(command.args[0], command.options, command.sudo);
         break;
     default:
@@ -171,7 +172,7 @@ void Kernel::help()
           "touch <path> - create file\r\n" +
           "rm <path> - delete file\r\n" +
           "mv <path1> <path2> - move or rename file\r\n" +
-          "python [-v] <path> - run python file, -v for verbose mode\r\n" +
+          "python, py [-v] <path> - run python file, -v for verbose mode\r\n" +
           "exit - close connection and exit\r\n") +
           yellow("You can use cat and nano with sudo to see or edit config file\r\n") +
           red("Be carefull when editing config.json, wrong changes may cause system malfunction!\r\n"));

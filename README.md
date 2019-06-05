@@ -18,7 +18,7 @@ Project uses internal SPIFFS of ESP32 as filesystem. In order to make it work yo
 - touch <path> - create file
 - rm <path> - delete file
 - mv <path1> <path2> - move or rename file
-- python [-v] <path> - run python file, -v for verbose mode
+- python, py [-v] <path> - run python file, -v for verbose mode
 - exit - close connection and exit
   
 You can use cat and nano with sudo to see or edit config file (e.g. sudo cat config.json).

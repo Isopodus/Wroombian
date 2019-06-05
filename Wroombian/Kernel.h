@@ -23,7 +23,7 @@ private:
     String password = "";
     String sudoPassword = "";
 
-    static const int commandsCount = 14;
+    static const int commandsCount = 15;
     String commands[commandsCount] = {
         "ram",
         "rom",
@@ -38,7 +38,8 @@ private:
         "mv",
         "help",
         "exit",
-        "python"
+        "python",
+        "py"
     };
 
 public :
