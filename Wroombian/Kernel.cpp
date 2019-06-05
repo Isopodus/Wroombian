@@ -305,8 +305,13 @@ void Kernel::python(String filename, String *options, bool sudo)
         if (checkSudo(filename, sudo))
         {
             String code = fs.readFile(filename);
-            reply("Input: ");
-            String input = waitString();
+            String input;
+            
+            if (code.indexOf("input(") != -1 || code.indexOf("raw_input(") != -1)
+            {
+                reply("Input: ");
+                input = waitString();
+            }
 
             // run code
             if (pyInterpreter.runCode(code, input))
