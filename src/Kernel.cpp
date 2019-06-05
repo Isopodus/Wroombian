@@ -158,23 +158,23 @@ void Kernel::printPath()
 void Kernel::help()
 {
     reply((String)
-            green("Available commands:\r\n") +
-            blue("help - show this message\r\n") +
-            blue("ram - get RAM load\r\n") +
-            blue("rom - get ROM load\r\n") +
-            blue("ls - list files and directories\r\n") +
-            blue("cd <path> - go to directory\r\n") +
-            blue("cat <path> - print file content\r\n") +
-            blue("nano <path> - rewrite file\r\n") +
-            blue("nano -a <path> - append to file\r\n") +
-            blue("mkdir <path> - make directory\r\n") +
-            blue("rmdir <path> - remove directory\r\n") +
-            blue("touch <path> - create file\r\n") +
-            blue("rm <path> - delete file\r\n") +
-            blue("mv <path1> <path2> - move or rename file\r\n") +
-            blue("exit - close connection and exit\r\n") +
-            yellow("You can use cat and nano with sudo to see or edit config file\r\n") +
-            red("Be carefull when editing config.json, wrong changes may cause system malfunction!\r\n"));
+          green("Available commands:\r\n") +
+          blue((String)"help - show this message\r\n" +
+          "ram - get RAM load\r\n" +
+          "rom - get ROM load\r\n" +
+          "ls - list files and directories\r\n" +
+          "cd <path> - go to directory\r\n" +
+          "cat <path> - print file content\r\n" +
+          "nano [-a] <path> - rewrite file, -a to append\r\n" +
+          "mkdir <path> - make directory\r\n" +
+          "rmdir <path> - remove directory\r\n" +
+          "touch <path> - create file\r\n" +
+          "rm <path> - delete file\r\n" +
+          "mv <path1> <path2> - move or rename file\r\n" +
+          "python [-v] <path> - run python file, -v for verbose mode\r\n" +
+          "exit - close connection and exit\r\n") +
+          yellow("You can use cat and nano with sudo to see or edit config file\r\n") +
+          red("Be carefull when editing config.json, wrong changes may cause system malfunction!\r\n"));
 }
 
 void Kernel::RAM()
@@ -300,33 +300,38 @@ void Kernel::exit()
 
 void Kernel::python(String filename, String *options, bool sudo)
 {
-    if (checkSudo(filename, sudo))
+    if (fs.fileExists(filename))
     {
-        String code = fs.readFile(filename);
-        reply("Input: ");
-        String input = waitString();
-
-        // run code
-        if (pyInterpreter.runCode(code, input))
+        if (checkSudo(filename, sudo))
         {
-            if (pyInterpreter.errors == "")
-                reply("\r\n" + green("Result:\r\n"));
+            String code = fs.readFile(filename);
+            reply("Input: ");
+            String input = waitString();
+
+            // run code
+            if (pyInterpreter.runCode(code, input))
+            {
+                if (pyInterpreter.errors == "")
+                    reply("\r\n" + green("Result:\r\n"));
+                else
+                    reply("\r\n" + yellow("Result:\r\n"));
+
+                reply(pyInterpreter.result + "\r\n");
+
+                // show stats if verbose option is set
+                if (options[0] == "-v")
+                    reply(blue("Stats:\r\n" + pyInterpreter.stats + "\r\n"));
+
+                // shos errors if needed
+                if (pyInterpreter.errors != "")
+                    reply("\r\n" + red("Errors:\r\n" + pyInterpreter.errors + "\r\n"));
+            }
             else
-                reply("\r\n" + yellow("Result:\r\n"));
-
-            reply(pyInterpreter.result + "\r\n");
-
-            // show stats if verbose option is set
-            if (options[0] == "-v")
-                reply(blue("Stats:\r\n" + pyInterpreter.stats + "\r\n"));
-
-            // shos errors if needed
-            if (pyInterpreter.errors != "")
-                reply("\r\n" + red("Errors:\r\n" + pyInterpreter.errors + "\r\n"));
+                reply("\r\n" + red("Connection refused or file is empty\r\n"));
         }
-        else
-            reply("\r\n" + red("Connection refused or file is empty\r\n"));
     }
+    else
+        reply("No such file found\r\n");
 }
 
 bool Kernel::checkSudo(String filename, bool sudo)

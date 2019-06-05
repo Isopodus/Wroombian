@@ -12,13 +12,13 @@ Project uses internal SPIFFS of ESP32 as filesystem. In order to make it work yo
 - ls - list files and directories
 - cd <path> - go to directory
 - cat <path> - print file content
-- nano <path> - rewrite file
-- nano -a <path> - append to file
+- nano [-a] <path> - rewrite file, -a to append
 - mkdir <path> - make directory
 - rmdir <path> - remove directory
 - touch <path> - create file
 - rm <path> - delete file
 - mv <path1> <path2> - move or rename file
+- python [-v] <path> - run python file, -v for verbose mode
 - exit - close connection and exit
   
 You can use cat and nano with sudo to see or edit config file (e.g. sudo cat config.json).
