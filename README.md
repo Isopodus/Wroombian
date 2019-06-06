@@ -1,5 +1,5 @@
 # Wroombian
-<strong>ESP32 Telnet linux emulator</strong>
+<strong>ESP32 Linux emulator</strong>
 
 *Made just for fun, but can be extended to something more useful with your help.*
 ## Installation
