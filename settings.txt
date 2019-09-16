@@ -1,0 +1,9 @@
+{
+    "machineName": "Wroom",
+    "user": ["root", "321"],
+    "network":{
+        "wifi": {"mandarinka": "mandarinka2017"},
+        "ap": ["Wroom32", "wroomb1an"],
+        "wifiConnectionTimeout": 10
+    }
+}

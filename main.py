@@ -1,16 +1,19 @@
-import upip as pip
-import os
-from machine import Pin
 import time
+from kernel import *
+import json
 
-startup = time.time()
+# Read settings from file
+file = open('/flash/settings.txt', 'r')
+raw = ''
+for line in file.readlines():
+    raw += line
+settings = json.loads(raw)
+file.close()
 
-print('Hello world!')
-
-led = Pin(2, Pin.OUT)
-while True:
-    led.value(1)
-    time.sleep(0.5)
-    led.value(0)
-    time.sleep(0.5)
-    print('Working for', time.time() - startup, 'seconds')
+kernel = Kernel()
+try:
+    while True:
+        kernel.handleTerminal()
+except KeyboardInterrupt as e:
+    print()
+    sys.exit()
