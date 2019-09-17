@@ -17,3 +17,7 @@ def lGray(skk):
     return "\033[97m{}\033[0m" .format(skk)
 def black(skk):
     return "\033[98m{}\033[0m" .format(skk)
+def keepRed():
+    print("\033[91m")
+def resetColor():
+    print("\033[0m")

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FLASH_COMPORT="COM2"
-FLASH_BDRATE="460800"
+FLASH_BDRATE="921600"
 
 get_arguments() {
     POSITIONAL_ARGS=()

@@ -10,10 +10,15 @@ for line in file.readlines():
 settings = json.loads(raw)
 file.close()
 
-kernel = Kernel()
+machine_name = settings['machineName']
+username = settings['user'][0]
+
+# Start kernel
+kernel = Kernel(machine_name, username)
 try:
     while True:
         kernel.handleTerminal()
 except KeyboardInterrupt as e:
     print()
-    sys.exit()
+    kernel.exit()
+
