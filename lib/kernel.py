@@ -6,8 +6,8 @@ from colors import *
 from command import Command
 from pye import pye
 
-# get rom available - statvfs('') -> (a, b, c, d), a*c=total, a*d=left, total-left=used
-# get file size - stat('file.txt') -> [6]
+def makeTab(line:str):
+    return ' ' * (25 - len(line))
 
 class Kernel:
     def __init__(self, machine_name, username):
@@ -81,11 +81,13 @@ class Kernel:
 
             dirs = os.listdir(path)
             os.chdir(path)
-            print(yellow('Name\t\t---\t\tSize\t\t---\t\tType'))
+            print(yellow('Name         ---         Size         ---         Type'))
             for dir in dirs:
                 stat = os.stat(dir)
-                print(dir, '\t\t\t\t',
-                      str(stat[6])+' B' if stat[6] < 1024 else str(round(stat[6]/1024, 2))+' KB', '\t\t\t\t',
+                sizeB = str(stat[6])+' B'
+                sizeKB = str(round(stat[6]/1024, 2))+' KB'
+                print(dir, makeTab(dir),
+                      sizeB + makeTab(sizeB) if stat[6] < 1024 else sizeKB + makeTab(sizeKB),
                       green('FILE') if stat[0] == 33279 else blue('DIR'), sep='')
         except OSError as e:
             print(red('No such directory'))
@@ -237,6 +239,7 @@ rm <path> - delete file
 mv <path1> <path2> - move or rename file
 exec <path> - run python script
 exit - shutdown Wroombian
-reboot - restart the device''')
+reboot - restart the device
+''')
         print(blue('Type command with --help (-h) key to show help for this command'))
             
