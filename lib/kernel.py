@@ -5,14 +5,37 @@ import sys
 from colors import *
 from command import Command
 from pye import pye
+from wifi import Wifi
+import json
 
-def makeTab(line:str):
-    return ' ' * (25 - len(line))
+def makeTab(line:str, size=25):
+    return ' ' * (size - len(line))
 
 class Kernel:
     def __init__(self, machine_name, username):
+        self.commands = {
+            "ram": self.ram,
+            "rom": self.rom,
+            "ls": self.ls,
+            "cd": self.cd,
+            "cat": self.cat,
+            "nano": self.nano,
+            "mkdir": self.mkdir,
+            "rmdir": self.rmdir,
+            "touch": self.touch,
+            "rm": self.rm,
+            "mv": self.mv,
+            "help": self.help,
+            "run": self.run,
+            "exit": self.exit,
+            "reboot": self.reboot,
+            "wifi": self.wifi_setup
+        }
+        
         self.machine_name = machine_name
         self.username = username
+        
+        self.wifi_handler = Wifi()
 
     def defaultCommand(self, *args):
         if args[2] != "-1":
@@ -26,26 +49,9 @@ class Kernel:
             os.chdir('/flash')
 
     def execute(self, command:Command):
-        commands = {
-            "ram": self.ram,
-            "rom": self.rom,
-            "ls": self.ls,
-            "cd": self.cd,
-            "cat": self.cat,
-            "nano": self.nano,
-            "mkdir": self.mkdir,
-            "rmdir": self.rmdir,
-            "touch": self.touch,
-            "rm": self.rm,
-            "mv": self.mv,
-            "help": self.help,
-            "exec": self.exec,
-            "exit": self.exit,
-            "reboot": self.reboot
-        }
-        func = commands.get(command.command, self.defaultCommand)
+        func = self.commands.get(command.command, self.defaultCommand)
         func(command.sudo, command.options, command.command)
-        # TODO add --help keys for commands
+        # TODO add --help keys for self.commands
 
     def handleTerminal(self):
         self.printHeader()
@@ -109,7 +115,6 @@ class Kernel:
             path = args[1][0]
             try:
                 file = open(path, 'r')
-                print()
                 print(*file.readlines())
                 file.close()
             except OSError as e:
@@ -194,7 +199,7 @@ class Kernel:
         else:
             print('No file name provided')
             
-    def exec(self, *args):
+    def run(self, *args):
         if len(args[1]) > 0:
             path = args[1][0]
             try:
@@ -223,7 +228,7 @@ class Kernel:
         machine.reset()
     
     def help(self, *args):
-        print(green('Available standard commands:'))
+        print(green('Available standard self.commands:'))
         print('''
 help - show this message
 ram - get RAM load
@@ -237,9 +242,56 @@ rmdir <path> - remove directory
 touch <path> - create file
 rm <path> - delete file
 mv <path1> <path2> - move or rename file
-exec <path> - run python script
+run <path> - run python script
 exit - shutdown Wroombian
 reboot - restart the device
+wifi <key> <arg1> <arg2> - control wifi
 ''')
         print(blue('Type command with --help (-h) key to show help for this command'))
+    
+    def wifi_setup(self, *args):
+        if len(args[1]) > 0:
+            key = args[1][0]
+            file = open('/flash/settings.txt')
+            settings = json.loads(file.read())
+            file.close()
+            if key in ['-sta', '--station']:
+                self.wifi_handler.connect()
+            elif key in ['-ap', '--startAP']:
+                self.wifi_handler.startAP()
+            elif key in ['-i', '--info']:
+                sta_ssid = self.wifi_handler.current_ssid
+                sta_ip = self.wifi_handler.sta.ifconfig()[0]
+                ap_ssid = self.wifi_handler.ap.config('essid') if self.wifi_handler.ap.active() else 'N/A'
+                ap_ip = self.wifi_handler.ap.ifconfig()[0]
+                print('STA:', sta_ssid, makeTab(sta_ssid, 15),
+                      sta_ip + makeTab(sta_ip, 15),
+                      green('Connected') if self.wifi_handler.sta.isconnected() else red('Not connected'))
+                print('AP: ', ap_ssid, makeTab(ap_ssid, 15),
+                      ap_ip + makeTab(ap_ip, 15),
+                      green('Active') if self.wifi_handler.ap.active() else red('Inactive'))
+            elif key in ['-s', '--scan']:
+                self.wifi_handler.scan()
+                print(*[i[0] + makeTab(i[0], 20) + str(i[1]) + ' dBm \t' + i[2] for i in self.wifi_handler.scanned], sep ='\n')
+            elif key in ['-cap', '--changeAP'] and len(args[1]) > 1:
+                settings['network']['ap'][0] = args[1][1]
+                if len(args[1]) > 2:
+                    settings['network']['ap'][1] = args[1][2]
+                else:
+                    settings['network']['ap'][1] = ''
+            elif key in ['-a', '--add'] and len(args[1]) > 1:
+                if len(args[1]) > 2:
+                    settings['network']['wifi'][args[1][1]] = args[1][2]
+                else:
+                    settings['network']['wifi'][args[1][1]] = ''
+            elif key in ['-d', '--delete'] and len(args[1]) > 1:
+                res = settings['network']['wifi'].pop(args[1][1], -1)
+                if res == -1:
+                    print(red('No such SSID found'))
+            else:
+                print(red('No valid key provided or arguments are missing'))
+            file = open('/flash/settings.txt', 'w')
+            file.write(json.dumps(settings))
+            file.close()
+            
             

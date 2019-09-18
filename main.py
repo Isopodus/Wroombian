@@ -4,10 +4,7 @@ import json
 
 # Read settings from file
 file = open('/flash/settings.txt', 'r')
-raw = ''
-for line in file.readlines():
-    raw += line
-settings = json.loads(raw)
+settings = json.loads(file.read())
 file.close()
 
 machine_name = settings['machineName']
