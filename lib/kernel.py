@@ -203,18 +203,18 @@ class Kernel:
         if len(args[1]) > 0:
             path = args[1][0]
             try:
-                if not 'main.py' in path:
-                    execfile(path)
-                else:
-                   print(red('Do NOT try to run multiple instances of OS. This may cause to stack overflow and CPU halt!'))
-            except Exception as e:
-                if type(e) is OSError:
-                    print(red('No such file'))
-                else:
-                    keepRed()
-                    print('Unhandled exception in file {}:'.format(path))
-                    sys.print_exception(e)
-                    resetColor()
+                if 'main.py' in path:
+                    print(purple('Be careful when running multiple instances of OS. This may cause to stack overflow and CPU halt!'))
+                execfile(path)
+            except OSError:
+                print(red('No such file'))
+            except (Exception, KeyboardInterrupt) as e:
+                keepRed()
+                print('Unhandled exception in file {}:'.format(path))
+                sys.print_exception(e)
+                resetColor()
+            except SystemExit:
+                pass
         else:
             print('No file name provided')
             
@@ -222,6 +222,7 @@ class Kernel:
         print(yellow('Shutting down Wroombian...'))
         gc.collect()
         sys.exit()
+        #raise SystemExit()
     
     def reboot(self, *args):
         print(yellow('Rebooting...'))
