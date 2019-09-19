@@ -18,7 +18,6 @@ Start reading our code and you'll get the hang of it. We optimize for readabilit
 
   * We indent using single tab
   * We ALWAYS put spaces after list items and method parameters (`[1, 2, 3]`, not `[1,2,3]`), around operators (`x += 1`, not `x+=1`), and so on.
-  * We use String class instead of char*
-  * Try to make your code less resource intensive as possible, ROM and RAM of an ESP is quite limited (e.g. do not use int where a singe byte is needed; if you are allocating memory always make it free after use, etc)
+  * Try to make your code less resource intensive as possible, ROM and RAM of an ESP is quite limited
   * This is open source software. Consider the people who will read your code, and make it look nice for them. It's sort of like driving a car: Perhaps you love doing donuts when you're alone, but with passengers the goal is to make the ride as smooth as possible.
-  
+ 
