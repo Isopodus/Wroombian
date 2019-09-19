@@ -289,6 +289,12 @@ wifi <key> <arg1> <arg2> - control wifi
                 res = settings['network']['wifi'].pop(args[1][1], -1)
                 if res == -1:
                     print(red('No such SSID found'))
+            elif key in ['-t', '--timeout']:
+                if len(args[1]) > 1 and args[1][1].isdigit():
+                    timeout = int(args[1][1])
+                    if timeout != 0:
+                        settings['network']['wifiConnectionTimeout'] = timeout
+                print('Timeout:', settings['network']['wifiConnectionTimeout'])
             else:
                 print(red('No valid key provided or arguments are missing'))
             file = open('/flash/settings.txt', 'w')
