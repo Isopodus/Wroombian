@@ -18,7 +18,7 @@ def split(line, ignorechars:list=['\'', '"'], splitchars:list=[' ', ',', ';']):
             result.append(string)
         return result
     
-class Command:
+class CommandString:
     
     sudo = False
     command = '-1'

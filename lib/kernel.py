@@ -3,7 +3,7 @@ import gc
 import machine
 import sys
 from colors import *
-from command import Command
+from command.command_string import CommandString
 from pye import pye
 from wifi import Wifi
 import json
@@ -48,14 +48,14 @@ class Kernel:
         except OSError as e:
             os.chdir('/flash')
 
-    def execute(self, command:Command):
+    def execute(self, command:CommandString):
         func = self.commands.get(command.command, self.defaultCommand)
         func(command.sudo, command.options, command.command)
         # TODO add --help keys for self.commands
 
     def handleTerminal(self):
         self.printHeader()
-        self.execute(Command(input()))
+        self.execute(CommandString(input()))
 
     def rom(self, *args):
         fs_data = os.statvfs('')
