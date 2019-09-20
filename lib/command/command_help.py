@@ -1,5 +1,5 @@
 from colors import *
-from kernel import makeTab
+from kernel import *
 
 class CommandHelp:
     
@@ -20,10 +20,11 @@ class CommandHelp:
         result += purple(self.description) + '\n'
         for key in self.keys:
             result += '    ' + yellow(key) + '  '
-            tab = ''
-            for arg in self.keys[key][0:-1]: 
-                result += yellow(arg) + ' '
-                tab += arg + ' '
+            tab = key
+            if len(self.keys[key]) > 2:
+                for arg in self.keys[key][0:-1]: 
+                    result += yellow(arg) + ' '
+                    tab += arg + ' '
             result += makeTab(tab) + self.keys[key][-1] + '\n'
             
         return result
