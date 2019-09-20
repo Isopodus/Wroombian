@@ -38,7 +38,7 @@ class Kernel:
         self.wifi_handler = Wifi()
 
     def defaultCommand(self, *args):
-        if args[2] != "-1":
+        if args[2] != None:
             print(red('No such command: {}'.format(args[2])))
 
     def printHeader(self):
@@ -49,9 +49,11 @@ class Kernel:
             os.chdir('/flash')
 
     def execute(self, command:CommandString):
-        func = self.commands.get(command.command, self.defaultCommand)
-        func(command.sudo, command.options, command.command)
-        # TODO add --help keys for self.commands
+        func = self.commands.get(command.command_name, self.defaultCommand)
+        if '-h' in command.keys or '--help' in command.keys:
+            print(command.help)
+        else:
+            func(command.sudo, command.keys, command.command_name)
 
     def handleTerminal(self):
         self.printHeader()

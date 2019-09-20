@@ -7,7 +7,7 @@ class CommandHelp:
     description = 'No description provided'
     keys = {} # pairs of {key: [args, key_description]} e.g. {'--cool': ['<path>', Add cool word into file]}
     
-    def __init__(self, name=None, description=None, keys=None):
+    def __init__(self, name:str=None, description:str=None, keys:dict=None):
         if name != None:
             self.name = name
         if description != None:

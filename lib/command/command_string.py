@@ -21,19 +21,17 @@ def split(line, ignorechars:list=['\'', '"'], splitchars:list=[' ', ',', ';']):
 class CommandString:
     
     sudo = False
-    command = '-1'
-    options = []
+    command_name = None
+    keys = []
     
     def __init__(self, raw_text):
         substrings = split(raw_text)
-        if len(substrings) > 1 and substrings[0] == 'sudo':
-            self.sudo = True
-            self.command = substrings[1]
-            self.options = substrings[2:]
-            
-        elif len(substrings) == 1 and substrings[0] == 'sudo':
-            pass # TODO provide message about missing command
-        elif len(substrings) > 0:
-            self.command = substrings[0]
-            self.options = substrings[1:]
+
+        if len(substrings) > 0:
+            if substrings[0] == 'sudo':
+                self.sudo = True
+                substrings.pop(0)
+            if len(substrings) > 0:
+                self.command_name = substrings[0]
+                self.keys = substrings[1:]
             
