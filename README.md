@@ -16,7 +16,7 @@ pip install esptool
 3. Flash your board
 - Linux
 
-  Download or clone repository folder, than in terminal go type:
+  Download or clone repository folder, than in terminal type:
   ``` bash
   ./firmware/flash.sh
   ```
@@ -64,13 +64,13 @@ pip install esptool
     <tr><td>-d, --delete</td>        <td>STA SSID</td>        <td>None</td>              <td>Delete network from list of existing networks</td></tr>  
   </table>
 
-## Limitations: 
-This is a work in progress version of kinda OS. If you have any offers or found a bug – please, report them in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
-
 ## Connection
 To connect to device you can use any Telnet client soft, but for Windows I'd recommend <a href="https://www.putty.org/">PuTTY</a>. For Linux you can use standard `telnet <ip:port>` command. IP adress is shown in serial monitor at startup, port is 23. 
 
 If WiFi is not connecting you can connect to devices WiFi access point with mobile Telnet client after wifi connection timeout happens (10 seconds by default). Default SSID: Wroom32, password: wroomb1an. Mobile Telnet: I'd recommend <a href="https://play.google.com/store/apps/details?id=com.sonelli.juicessh&hl=ru">JuiceSSH</a>. IP is 192.168.4.1, port 23.
+
+## Limitations: 
+This is a work in progress version of kinda OS. If you have any offers or found a bug – please, report them in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
 
 ## Interesting things that can be addded (crossed out are done)
 - ~~Changing wifi settings from terminal rather than through file~~
