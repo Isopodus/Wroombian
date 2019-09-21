@@ -70,7 +70,7 @@ To connect to device you can use any Telnet client soft, but for Windows I'd rec
 If WiFi is not connecting you can connect to devices WiFi access point with mobile Telnet client after wifi connection timeout happens (10 seconds by default). Default SSID: Wroom32, password: wroomb1an. Mobile Telnet: I'd recommend <a href="https://play.google.com/store/apps/details?id=com.sonelli.juicessh&hl=ru">JuiceSSH</a>. IP is 192.168.4.1, port 23.
 
 ## Limitations: 
-This is a work in progress version of kinda OS. If you have any offers or found a bug – please, report them in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
+This is a work in progress version of an OS. If you have any offers or found a bug, feel free to ask in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
 
 ## Interesting things that can be addded (crossed out are done)
 - ~~Changing wifi settings from terminal rather than through file~~
