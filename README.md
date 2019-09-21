@@ -67,7 +67,7 @@ pip install esptool
 ## Connection
 To connect to device you can use any Telnet client soft, but for Windows I'd recommend <a href="https://www.putty.org/">PuTTY</a>. For Linux you can use standard `telnet <ip:port>` command. IP adress is shown in serial monitor at startup, port is 23. 
 
-If WiFi is not connecting, you can connect to devices WiFi access point (afte r10 seconds by default). Default SSID: Wroom32, password: wroomb1an. Than use mobile Telnet client (<a href="https://play.google.com/store/apps/details?id=com.sonelli.juicessh&hl=ru">JuiceSSH</a>) to connect (IP: 192.168.4.1, port: 23).
+If WiFi is not connecting, you can connect to devices WiFi access point (after 10 seconds by default). Default SSID: Wroom32, password: wroomb1an. Than use mobile Telnet client (<a href="https://play.google.com/store/apps/details?id=com.sonelli.juicessh&hl=ru">JuiceSSH</a>) to connect (IP: 192.168.4.1, port: 23).
 
 ## Limitations: 
 This is a work in progress version of an OS. If you have any offers or found a bug, feel free to ask in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
