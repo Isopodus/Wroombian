@@ -8,7 +8,10 @@ import json
 
 from command.command import Command
 from colors import *
-from kernel import *
+from wifi import Wifi
+
+def makeTab(line:str, size=25):
+    return ' ' * (size - len(line))
 
 class ram(Command):
     
@@ -282,7 +285,7 @@ class wifi(Command):
     
     def __init__(self):
         super().__init__('Handle Wifi connection and settings',
-                         {'-sta, --station': ['<ssid>', '<pass>', 'Disadle AP and try to connect to Wifi network.\n Uses knowns list if no SSID provided, if no connection estabilished - enables AP. If network has no password, type in only SSID argument'],
+                         {'-sta, --station': ['<ssid>', '<pass>', 'Disadle AP and try to connect to Wifi network. Uses knowns list if no SSID provided, if no connection estabilished - enables AP. If network has no password, type in only SSID argument'],
                           '-ap, --startAP': ['Disadle STA and activate AP'],
                           '-i, --info': ['Show STA and AP state and IP\'s'],
                           '-s, --scan': ['Show available Wifi networks'],
@@ -290,6 +293,7 @@ class wifi(Command):
                           '-a, --add': ['<ssid>', '<password>', 'Add new Wifi network to knowns list'],
                           '-d, --delete': ['<ssid>', 'Delete Wifi network from knowns list'],
                           '-t, --timeout': ['<timeout>', 'Get or set Wifi connection timeout (10 seconds by default)'],})
+        self.wifi_handler = Wifi()
     
     def __call__(self, *args):
         if len(args[1]) > 0:
@@ -298,7 +302,14 @@ class wifi(Command):
             settings = json.loads(file.read())
             file.close()
             if key in ['-sta', '--station']:
-                self.wifi_handler.connect()
+                if len(args[1]) > 1:
+                    password = ''
+                    ssid = args[1][1]
+                    if len(args[1])> 2:
+                        password = args[1][2]
+                    self.wifi_handler.connect_given(ssid, password)
+                else:
+                    self.wifi_handler.connect()
             elif key in ['-ap', '--startAP']:
                 self.wifi_handler.startAP()
             elif key in ['-i', '--info']:

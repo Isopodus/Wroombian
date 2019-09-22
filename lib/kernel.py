@@ -5,13 +5,9 @@ import sys
 from colors import *
 from command.command_string import CommandString
 from pye import pye
-from wifi import Wifi
 import json
 
 import standard_commands as sc
-
-def makeTab(line:str, size=25):
-    return ' ' * (size - len(line))
 
 class Kernel:
     def __init__(self, machine_name, username):
@@ -37,8 +33,6 @@ class Kernel:
         self.machine_name = machine_name
         self.username = username
         
-        self.wifi_handler = Wifi()
-
     def printHeader(self):
         try:
             path = os.getcwd()
@@ -47,15 +41,16 @@ class Kernel:
             os.chdir('/flash')
 
     def execute(self, command_string:CommandString):
-        for command in self.commands:
-            if command.name == command_string.command_name:
-                if '-h' in command.keys or '--help' in command.keys:
-                    print(command.help)
-                    return
-            else:
-                command(command_string.sudo, command_string.keys, command_string.command_name)
-                return
-        print(red('No such command: {}'.format(command_string.command_name)))
+        if command_string.command_name != None:
+            for command in self.commands:
+                if command.name == command_string.command_name:
+                    if '-h' in command_string.keys or '--help' in command_string.keys:
+                        print(command.help)
+                        return
+                    else:
+                        command(command_string.sudo, command_string.keys, command_string.command_name)
+                        return
+            print(red('No such command: {}'.format(command_string.command_name)))
 
     def handleTerminal(self):
         self.printHeader()

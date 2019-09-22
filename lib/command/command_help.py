@@ -1,5 +1,7 @@
 from colors import *
-from kernel import *
+
+def makeTab(line:str, size=35):
+    return ' ' * (size - len(line))
 
 class CommandHelp:
     
