@@ -1,27 +1,20 @@
 import time
 from kernel import *
 import json
-
-from standard_commands import *
-
-# Read settings from file
-file = open('/flash/settings.txt', 'r')
-settings = json.loads(file.read())
-file.close()
-
-machine_name = settings['machineName']
-username = settings['user'][0]
-
-ram_c = ram()
-ram_c()
-print(ram_c.help)
+from standard_commands import StandardCommandsModule
 
 # Start kernel
-kernel = Kernel(machine_name, username)
+kernel = Kernel()
+
+# Load commands
+sc = StandardCommandsModule()
+kernel.commands.extend(sc.commands)
+kernel.execute('wifi -init')
+
 try:
     while True:
         kernel.handleTerminal()
 except KeyboardInterrupt as e:
     print()
-    kernel.exit()
+    kernel.execute('exit')
 
