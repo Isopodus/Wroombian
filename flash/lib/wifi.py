@@ -6,7 +6,7 @@ import json
 class Wifi:
     def __init__(self):
         self.current_ssid = 'N/A'
-        file = open('/flash/settings.txt', 'r')
+        file = open('/flash/etc/settings.txt', 'r')
         self.settings = json.loads(file.read())
         file.close()
 
@@ -21,7 +21,7 @@ class Wifi:
         
     def connect_given(self, ssid, password):
         if password == '':
-            file = open('/flash/settings.txt', 'r')
+            file = open('/flash/etc/settings.txt', 'r')
             self.settings = json.loads(file.read())
             file.close()
             if ssid in self.settings['network']['wifi'].keys():
@@ -46,7 +46,7 @@ class Wifi:
             
     # Connect to wifi
     def connect(self):
-        file = open('/flash/settings.txt', 'r')
+        file = open('/flash/etc/settings.txt', 'r')
         self.settings = json.loads(file.read())
         file.close()
         
@@ -77,7 +77,7 @@ class Wifi:
 
     # start AP
     def startAP(self):
-        file = open('/flash/settings.txt', 'r')
+        file = open('/flash/etc/settings.txt', 'r')
         self.settings = json.loads(file.read())
         file.close()
         

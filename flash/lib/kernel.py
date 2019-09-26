@@ -13,7 +13,7 @@ class Kernel:
         self.commands =[]
         
         # Read settings from file
-        file = open('/flash/settings.txt', 'r')
+        file = open('/flash/etc/settings.txt', 'r')
         settings = json.loads(file.read())
         file.close()
         

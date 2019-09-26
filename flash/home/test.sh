@@ -1,0 +1,2 @@
+wifi -s
+wifi -i
