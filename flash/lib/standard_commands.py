@@ -217,7 +217,7 @@ class StandardCommandsModule(CommandsModule):
     class run(Command):
         
         def __init__(self):
-            super().__init__('Execute python script')
+            super().__init__('Execute python script', {'-d. --detached': ['<path>', 'Run script in separate thread']})
         
         def __call__(self, *args):
             if len(args[1]) > 0:
@@ -226,7 +226,24 @@ class StandardCommandsModule(CommandsModule):
                     if 'main.py' in path:
                         print(purple('Be careful when running multiple instances of OS. This may cause to stack overflow and CPU halt!'))
                     if '-d' in args[1] or '--detached' in args[1]:
-                        print(yellow('Not implemented yet'))
+                        def run_script_threaded(filename):
+                            try:
+                                thread.allowsuspend(True)
+                                while True:
+                                    ntf = thread.getnotification()
+                                    if ntf:
+                                        if ntf == thread.EXIT:
+                                            return
+                                        elif ntf == thread.SUSPEND:
+                                            while thread.wait() != thread.RESUME:
+                                                pass
+                                    execfile(filename)
+                            except Exception as e:
+                                print(red(e))
+                                
+                        thread.start_new_thread(path, run_script_threaded, (path,))
+                        return
+                    
                     execfile(path)
                 except OSError:
                     print(red('No such file'))
@@ -239,7 +256,34 @@ class StandardCommandsModule(CommandsModule):
                     pass
             else:
                 print('No file name provided')
-                
+               
+    class service(Command):
+        def __init__(self):
+            super().__init__('Configure system services',
+                             {'-th': ['List threads running'],
+                              '-rth': ['<thread_id>', 'Resume thread'],
+                              '-pth': ['<thread_id>', 'Pause thread'],
+                              '-sth': ['<thread_id>', 'Stop thread'],
+                             })
+        
+        def __call__(self, *args):
+            if len(args[1]) > 0:
+                if '-th' in args[1]:
+                    threads = thread.list(False)
+                    states = {0: green('Running'), 1: yellow('Suspended'), 2: yellow('Waiting'), 3: red('Terminated')}
+                    types = {1: purple('MAIN'), 2: lPurple('PYTHON'), 3: cyan('SERVICE')}
+                    print(yellow('ID               Name               State          Stack      Max stack used       Type'))
+                    for t in threads:
+                        print(str(t[0]) + makeTab(str(t[0]), 17) + t[2] + makeTab(t[2], 19) + states[t[3]] + makeTab('Terminated', 18) + str(t[4]) + makeTab(str(t[4]), 11) + str(t[5]) + makeTab(str(t[5]), 21) + types[t[1]])
+                elif '-rth' in args[1] and len(args[1]) > 1:
+                    thread.resume(int(args[1][1]))
+                    #thread.notify(int(args[1][1]), thread.RESUME)
+                elif '-pth' in args[1] and len(args[1]) > 1:
+                    thread.suspend(int(args[1][1]))
+                elif '-sth' in args[1] and len(args[1]) > 1:
+                    thread.stop(int(args[1][1]))
+                    
+    
     class exit(Command):
         
         def __init__(self):
