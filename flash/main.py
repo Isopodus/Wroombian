@@ -7,8 +7,7 @@ from standard_commands import StandardCommandsModule
 kernel = Kernel()
 
 # Load commands
-sc = StandardCommandsModule()
-kernel.commands.extend(sc.commands)
+kernel.loadCommandsModule(StandardCommandsModule())
 kernel.execute('wifi -init')
 
 try:

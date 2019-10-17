@@ -23,7 +23,7 @@ class CommandHelp:
         for key in self.keys:
             result += '    ' + yellow(key) + '  '
             tab = key
-            if len(self.keys[key]) > 2:
+            if len(self.keys[key]) > 1:
                 for arg in self.keys[key][0:-1]: 
                     result += yellow(arg) + ' '
                     tab += arg + ' '
