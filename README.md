@@ -74,7 +74,6 @@ This is a work in progress version of an OS. If you have any offers or found a b
 
 ## Interesting things that can be addded (crossed out are done)
 - ~~Changing wifi settings from terminal rather than through file~~
-- Changing settings from terminal rather than through file
-- --help key for any command
-- Installing additional commands
-- Simple web browser
+- ~~Changing settings from terminal rather than through file~~
+- ~~--help key for any command~~
+- Installing additional commands (in progress)
