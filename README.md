@@ -52,17 +52,8 @@ pip install esptool
 - `exit` - shutdown Wroombian
 - `wifi <key> <arg1> <arg2>` - set wifi settings
   
-**Wifi command usage**
-  <table>
-    <tr><td>Key</td>                 <td>arg1</td>            <td>arg2</td>              <td>Description</td></tr>
-    <tr><td>-sta, --station</td>     <td>SSID/None</td>       <td>None</td>              <td>Load password of given network from settings and connect/Try to connect to any of known networks</td></tr>
-    <tr><td>-ap, --startAP</td>      <td>None</td>            <td>None</td>              <td>Shutdown STA mode and start access point</td></tr>  
-    <tr><td>-i, --info</td>          <td>None</td>            <td>None</td>              <td>Get info about curent STA and AP state</td></tr>  
-    <tr><td>-s, --scan</td>          <td>None</td>            <td>None</td>              <td>Scan and list available wifi networks</td></tr>  
-    <tr><td>-cap, --changeAP</td>    <td>AP SSID</td>         <td>AP password</td>       <td>Change AP SSID adn password</td></tr>  
-    <tr><td>-a, --add</td>           <td>STA SSID</td>        <td>STA password</td>      <td>Add new network as known/ Edit existing network password</td></tr>  
-    <tr><td>-d, --delete</td>        <td>STA SSID</td>        <td>None</td>              <td>Delete network from list of existing networks</td></tr>  
-  </table>
+**Commands help**
+Simply add `--help` key to any command to view it's usage
 
 ## Connection
 To connect to device you can use any Telnet client soft, but for Windows I'd recommend <a href="https://www.putty.org/">PuTTY</a>. For Linux you can use standard `telnet <ip:port>` command. IP adress is shown in serial monitor at startup, port is 23. 
