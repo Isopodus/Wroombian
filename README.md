@@ -52,7 +52,7 @@ pip install esptool
 - `exit` - shutdown Wroombian
 - `wifi <key> <arg1> <arg2>` - set wifi settings
   
-**Commands help**
+## Commands help
 Simply add `--help` key to any command to view it's usage
 
 ## Connection
