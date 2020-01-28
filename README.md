@@ -39,18 +39,19 @@ pip install esptool
 - `ram` - get RAM load
 - `rom` - get ROM load
 - `ls` - list files and directories
-- `cd <path>` - go to directory
-- `cat <path>` - print file content
-- `nano <path>` - edit file
-- `mkdir <path>` - make directory
-- `rmdir <path>` - remove directory
-- `touch <path>` - create file
-- `rm <path>` - delete file
-- `mv <path1> <path2>` - move or rename file
-- `run` - run python script
+- `cd` - go to directory
+- `cat` - print file content
+- `nano` - edit file
+- `mkdir` - make directory
+- `rmdir` - remove directory
+- `touch` - create file
+- `rm` - delete file
+- `mv` - move or rename file
+- `run` - run python scriptfile
+- `service` - manage detached processes
 - `reboot` - restart the device
 - `exit` - shutdown Wroombian
-- `wifi <key> <arg1> <arg2>` - set wifi settings
+- `wifi` - set wifi settings
   
 ## Commands help
 Simply add `--help` key to any command to view it's usage
