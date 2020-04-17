@@ -16,13 +16,13 @@ pip install esptool
 3. Flash your board
 - Linux
 
-  Download or clone repository folder, than in terminal type:
+  Download or clone repository folder, open `/firmware/flash.sh`, change `FLASH_COMPORT` value to your ESP32 port (e.g. /dev/ttyUSB0). Then in terminal type:
   ``` bash
   ./firmware/flash.sh
   ```
 - Windows
 
-  Install <a href="https://git-scm.com/download/win">Git for Windows</a>, download or clone repository folder, than in Git bash type:
+  Install <a href="https://git-scm.com/download/win">Git for Windows</a>, download or clone repository folder, open `/firmware/flash.sh`, change `FLASH_COMPORT` value to your ESP32 port (e.g. COM1). Then in Git bash type:
   ``` bash
   ./firmware/flash.sh
   ```
@@ -30,8 +30,8 @@ pip install esptool
   
   Go to firmware folder and run commands manually (will work for Linux too, do not forget to type valid COM port):
   ```
-  esptool --port YOURCOMPORT erase_flash
-  esptool --chip esp32 --port YOURCOMPORT --baud 460800 --before default_reset --after no_reset write_flash -z --flash_mode dio --flash_freq 40m --flash_size detect 0x1000 bootloader/bootloader.bin 0xf000 phy_init_data.bin 0x10000 MicroPython.bin 0x8000 partitions_mpy.bin
+  esptool --port COM1 erase_flash
+  esptool --chip esp32 --port COM1 --baud 460800 --before default_reset --after no_reset write_flash -z --flash_mode dio --flash_freq 40m --flash_size detect 0x1000 bootloader/bootloader.bin 0xf000 phy_init_data.bin 0x10000 MicroPython.bin 0x8000 partitions_mpy.bin
   ```
 
 ## Available commands: 
@@ -47,7 +47,7 @@ pip install esptool
 - `touch` - create file
 - `rm` - delete file
 - `mv` - move or rename file
-- `run` - run python scriptfile
+- `run` - run python script file
 - `service` - manage detached processes
 - `reboot` - restart the device
 - `exit` - shutdown Wroombian
@@ -55,6 +55,9 @@ pip install esptool
   
 ## Commands help
 Simply add `--help` key to any command to view it's usage
+
+## Bash files
+You can also simply type the name of an existing file and the system will try to execute every line as a single bash command.
 
 ## Connection
 To connect to device you can use any Telnet client soft, but for Windows I'd recommend <a href="https://www.putty.org/">PuTTY</a>. For Linux you can use standard `telnet <ip:port>` command. IP adress is shown in serial monitor at startup, port is 23. 
@@ -68,4 +71,4 @@ This is a work in progress version of an OS. If you have any offers or found a b
 - ~~Changing wifi settings from terminal rather than through file~~
 - ~~Changing settings from terminal rather than through file~~
 - ~~--help key for any command~~
-- Installing additional commands (in progress)
+- Installing additional commands (work in progress)
