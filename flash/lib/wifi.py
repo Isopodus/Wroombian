@@ -18,7 +18,6 @@ class Wifi:
         telnet.start(user=self.settings['user'][0], password=self.settings['user'][1], timeout=5000)
         #ftp.start(user=self.settings['user'][0], password=self.settings['user'][1], buffsize=1024, timeout=300)
         
-        
     def connect_given(self, ssid, password):
         if password == '':
             file = open('/flash/etc/settings.txt', 'r')

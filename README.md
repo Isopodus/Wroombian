@@ -68,7 +68,5 @@ If WiFi is not connecting, you can connect to devices WiFi access point (after 1
 This is a work in progress version of an OS. If you have any offers or found a bug, feel free to ask in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
 
 ## Interesting things that can be addded (crossed out are done)
-- ~~Changing wifi settings from terminal rather than through file~~
-- ~~Changing settings from terminal rather than through file~~
-- ~~--help key for any command~~
-- Installing additional commands (work in progress)
+- A comand to enable/disable installed command modules 
+- pip command (upip handler)

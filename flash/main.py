@@ -1,15 +1,12 @@
-import time
 from kernel import *
-import json
-from standard_commands import StandardCommandsModule
 
-# Start kernel
+# Start the kernel
 kernel = Kernel()
 
-# Load commands
-kernel.loadCommandsModule(StandardCommandsModule())
+# Init wifi
 kernel.execute('wifi -init')
 
+# Run main loop
 try:
     while True:
         kernel.handleTerminal()

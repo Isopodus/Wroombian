@@ -6,7 +6,7 @@ def split(line, ignorechars:list=['\'', '"'], splitchars:list=[' ', ',', ';']):
         ignore = False
         for c in line:
             if c in ignorechars:
-                ignore = True if ignore == False else False
+                ignore = not ignore
             elif c in splitchars and not ignore:
                 if string != '':
                     result.append(string)

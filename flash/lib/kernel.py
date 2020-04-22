@@ -9,6 +9,8 @@ from command.commands_module import CommandsModule
 from pye import pye
 import json
 
+from modules.standard_commands import StandardCommandsModule
+
 class Kernel:
     def __init__(self):
         self.commands_modules =[]
@@ -20,6 +22,21 @@ class Kernel:
 
         self.machine_name = settings['machineName']
         self.username = settings['user'][0]
+        
+        # Load standard commands
+        self.loadCommandsModule(StandardCommandsModule())
+        
+        # Read command modules config and load all the enabled modules
+        file = open('/flash/etc/modules.txt')
+        modules = json.loads(file.read())
+        file.close()
+        
+        for module_path in modules:
+            if modules[module_path] != False:
+                temp = __import__('modules.' + module_path, globals(), locals(), modules[module_path])
+                for class_name in modules[module_path]:
+                    self.loadCommandsModule(getattr(temp, class_name)())
+        
 
     def loadCommandsModule(self, module:CommandsModule):
         self.commands_modules.append(module)
