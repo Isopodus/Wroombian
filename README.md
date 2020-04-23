@@ -70,3 +70,4 @@ This is a work in progress version of an OS. If you have any offers or found a b
 ## Interesting things that can be addded (crossed out are done)
 - A comand to enable/disable installed command modules 
 - pip command (upip handler)
+- Improve commands arguments indexation (replace numeric indexes with strings, to reduce complexcity)

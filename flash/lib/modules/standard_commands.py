@@ -5,6 +5,7 @@ import sys
 from pye import pye
 from wifi import Wifi
 import json
+import upip
 import _thread as thread
 
 from command.command import Command
@@ -35,6 +36,10 @@ class StandardCommandsModule(CommandsModule):
         self.commands.append(exit())
         self.commands.append(reboot())
         self.commands.append(wifi())
+        self.commands.append(modules())
+        self.commands.append(pip())
+        
+        # Help must always be the last to gather all the commands help messages
         self.commands.append(help(self.commands))
     
 class ram(Command):
@@ -437,3 +442,24 @@ class wifi(Command):
             file = open('/flash/etc/settings.txt', 'w')
             file.write(json.dumps(settings))
             file.close()
+
+class pip(Command):
+    
+    def __init__(self):
+        super().__init__('Install micropython packages',
+                         {'install': ['<package_name>', '<path>',
+                                      'Try to download and install new package, path is optional (packages will be installed to /lib by default']})
+    
+    def __call__(self, *args):
+        if len(args[1]) > 0:
+            if 'install' in args[1] and len(args[1]) > 1:
+                path = None
+                if (len(args[1]) == 3):
+                    path = args[1][2]
+                upip.install(args[1][1], path)
+            else:
+                print(red('No valid parameters provided'))
+                print(self.help)
+        else:
+            print(red('No parameters provided'))
+            print(self.help)
