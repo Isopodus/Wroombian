@@ -1,1 +1,1 @@
-{"user": ["root", "321"], "machineName": "Wroom", "network": {"wifi": {"mandarinka": "mandarinka2017"}, "ap": ["Wroom32", "wroomb1an"], "wifiConnectionTimeout": 10}}
+{"user": ["root", "321"], "machineName": "Wroom", "network": {"wifi": {"test": "testtest"}, "ap": ["Wroom32", "wroomb1an"], "wifiConnectionTimeout": 10}}
