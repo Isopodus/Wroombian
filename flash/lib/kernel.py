@@ -32,10 +32,13 @@ class Kernel:
         file.close()
         
         for module_path in modules:
-            if modules[module_path] != False:
-                temp = __import__('modules.' + module_path, globals(), locals(), modules[module_path])
-                for class_name in modules[module_path]:
-                    self.loadCommandsModule(getattr(temp, class_name)())
+            if isinstance(modules[module_path], dict) and modules[module_path]['enabled']:
+                try:
+                    temp = __import__('modules.' + module_path, globals(), locals(), modules[module_path]['classes'])
+                    for class_name in modules[module_path]['classes']:
+                        self.loadCommandsModule(getattr(temp, class_name)())
+                except (NameError, ImportError) as e:
+                    print(red('Failed to load class' + str('es ' if len(modules[module_path]['classes']) > 1 else ' ') + ', '.join(modules[module_path]['classes']) + ' from ' + module_path))
         
 
     def loadCommandsModule(self, module:CommandsModule):

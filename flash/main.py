@@ -1,4 +1,6 @@
 from kernel import *
+import sys
+from colors import *
 
 # Start the kernel
 kernel = Kernel()
@@ -7,10 +9,14 @@ kernel = Kernel()
 kernel.execute('wifi -init')
 
 # Run main loop
-try:
-    while True:
+while True:
+    try:
         kernel.handleTerminal()
-except KeyboardInterrupt as e:
-    print()
-    kernel.execute('exit')
-
+    except KeyboardInterrupt as e:
+        print()
+        kernel.execute('exit')
+    except Exception as e:
+        keepRed()
+        print('Unhandled exception while running Wroombian:')
+        sys.print_exception(e)
+        resetColor()

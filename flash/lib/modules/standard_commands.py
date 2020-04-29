@@ -5,7 +5,6 @@ import sys
 from pye import pye
 from wifi import Wifi
 import json
-import upip
 import _thread as thread
 
 from command.command import Command
@@ -18,7 +17,9 @@ def makeTab(line:str, size=25):
 
 class StandardCommandsModule(CommandsModule):
     def __init__(self):
+        self.reload()
         
+    def reload(self):
         # Add all commands
         self.commands.append(ram())
         self.commands.append(rom())
@@ -37,7 +38,6 @@ class StandardCommandsModule(CommandsModule):
         self.commands.append(reboot())
         self.commands.append(wifi())
         self.commands.append(modules())
-        self.commands.append(pip())
         
         # Help must always be the last to gather all the commands help messages
         self.commands.append(help(self.commands))
@@ -301,7 +301,7 @@ class run(Command):
 class service(Command):
     def __init__(self):
         super().__init__('Configure system services',
-                         {'ls': ['List threads running'],
+                         {'list': ['List threads running'],
                           'resume': ['<thread_id>', 'Resume thread'],
                           'pause': ['<thread_id>', 'Pause thread'],
                           'stop': ['<thread_id>', 'Stop thread'],
@@ -309,7 +309,7 @@ class service(Command):
     
     def __call__(self, *args):
         if len(args[1]) > 0:
-            if 'ls' in args[1]:
+            if 'list' in args[1]:
                 threads = thread.list(False)
                 states = {0: green('Running'), 1: yellow('Suspended'), 2: yellow('Waiting'), 3: red('Terminated')}
                 types = {1: purple('MAIN'), 2: lPurple('PYTHON'), 3: cyan('SERVICE')}
@@ -443,23 +443,57 @@ class wifi(Command):
             file.write(json.dumps(settings))
             file.close()
 
-class pip(Command):
+class modules(Command):
     
     def __init__(self):
-        super().__init__('Install micropython packages',
-                         {'install': ['<package_name>', '<path>',
-                                      'Try to download and install new package, path is optional (packages will be installed to /lib by default']})
+        super().__init__('Manage command modules',
+                         {'enable': ['<module_name>', 'Enable command module'],
+                          'disable': ['<module_name>', 'Disable command module'],
+                          'add': ['<module_name>', '<class_name1>, <class_name2>, ...', 'Add command module to config'],
+                          'remove': ['<module_name>', 'Remove command module from config (this will not remove the module from device memory)'],
+                          'list': ['Show available modules in the configuration file']})
     
     def __call__(self, *args):
         if len(args[1]) > 0:
-            if 'install' in args[1] and len(args[1]) > 1:
-                path = None
-                if (len(args[1]) == 3):
-                    path = args[1][2]
-                upip.install(args[1][1], path)
-            else:
-                print(red('No valid parameters provided'))
-                print(self.help)
+            file = open('/flash/etc/modules.txt')
+            modules = json.loads(file.read())
+            file.close()
+            
+            try:
+                if 'enable' in args[1] and len(args[1]) == 2:
+                    modules[args[1][1]]['enabled'] = True
+                    print(green('Module ' + args[1][1] + ' enabled succesfully'))
+                    print(yellow('Reboot is required to apply the changes'))
+                elif 'disable' in args[1] and len(args[1]) == 2:
+                    modules[args[1][1]]['enabled'] = False
+                    print(green('Module ' + args[1][1] + ' disabled succesfully'))
+                    print(yellow('Reboot is required to apply the changes'))
+                elif 'add' in args[1] and len(args[1]) > 2:
+                    modules[args[1][1]] = dict()
+                    modules[args[1][1]]['enabled'] = True
+                    modules[args[1][1]]['classes'] = args[1][2:]
+                    print(green('Module ' + args[1][1] + ' added and enabled succesfully'))
+                    print(yellow('Reboot is required to apply the changes'))
+                elif 'remove' in args[1] and len(args[1]) == 2:
+                    del modules[args[1][1]]
+                    print(green('Module ' + args[1][1] + ' removed succesfully'))
+                    print(yellow('Reboot is required to apply the changes'))
+                elif 'list' in args[1]:
+                    for i, module_path in enumerate(modules):
+                        print('#' + str(i + 1))
+                        print('Name: ' + yellow(module_path))
+                        print('Class' + str('es: ' if len(modules[module_path]['classes']) > 1 else ': ') + blue(', '.join(modules[module_path]['classes'])))
+                        print('Status: ' + green('enabled') if modules[module_path]['enabled'] else red('disabled'))
+                        print()
+                else:
+                    print(red('No valid parameters provided'))
+                    print(self.help)
+            except KeyError as e:
+                print(red('Module not found'))
+            
+            file = open('/flash/etc/modules.txt', 'w')
+            file.write(json.dumps(modules))
+            file.close()
         else:
             print(red('No parameters provided'))
             print(self.help)

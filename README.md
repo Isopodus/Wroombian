@@ -67,7 +67,6 @@ If WiFi is not connecting, you can connect to devices WiFi access point (after 1
 ## Limitations: 
 This is a work in progress version of an OS. If you have any offers or found a bug, feel free to ask in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
 
-## Interesting things that can be addded (crossed out are done)
-- A comand to enable/disable installed command modules 
-- pip command (upip handler)
+## Currently in progress
 - Improve commands arguments indexation (replace numeric indexes with strings, to reduce complexcity)
+- Move help command to kernel to gather submodules help messages
