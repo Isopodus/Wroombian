@@ -9,4 +9,4 @@ Wroombian is an attempt to create a working operating system for the ESP32 micro
 Please head to the [wiki page](https://github.com/Isopodus/Wroombian/wiki) to read about features and get some usage instructions.
 
 ## Limitations: 
-This is a work in progress version of an OS. If you have any offers or found a bug, feel free to ask in <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
+This is a work in progress version of an OS. If you have any offers or found a bug, feel free to ask in the <a href="https://github.com/Isopodus/Wroombian/issues">Issues</a> section.
